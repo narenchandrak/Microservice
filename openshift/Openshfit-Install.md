@@ -105,12 +105,15 @@ gpgcheck =  0
 masters
 nodes
 etcd
-
+nfs
 
 [masters]
 master.lab.example.com openshift_ip=192.168.1.11
 
 [etcd]
+master.lab.example.com openshift_ip=192.168.1.11
+
+[nfs]
 master.lab.example.com openshift_ip=192.168.1.11
 
 [nodes]
@@ -129,7 +132,7 @@ containerized=false
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
 openshift_disable_check=disk_availability,docker_storage,memory_availability,docker_image_availability
 
-openshift_node_kubelet_args={'pods-per-core': ['15']}
+openshift_node_kubelet_args={'pods-per-core': ['10']}
 
 deployment_type=origin
 openshift_deployment_type=origin
@@ -141,18 +144,35 @@ openshift_service_catalog_image_version=v3.9.0
 template_service_broker_image_version=v3.9.0
 osm_use_cockpit=true
 
+
+# Login Details paswword Configuration
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider'}]
+openshift_master_htpasswd_file='/etc/origin/master/htpasswd'
+
 # put the router on dedicated infra1 node
 openshift_hosted_router_selector='region=infra'
 openshift_master_default_subdomain=apps.lab.example.com
 openshift_public_hostname=master.lab.example.com
+openshift_master_api_port=8443
+openshift_master_console_port=8443
 
 # put the image registry on dedicated infra1 node
 openshift_hosted_registry_selector='region=infra'
+
+# NFS Configuration for Registry
+openshift_hosted_registry_storage_kind=nfs
+openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+openshift_hosted_registry_storage_nfs_directory=/exports
+openshift_hosted_registry_storage_nfs_options='*(rw,root_squash)'
+openshift_hosted_registry_storage_volume_name=registry
+openshift_hosted_registry_storage_volume_size=10Gi
 ```
 
 ##### Step 3: Use the below ansible playbook command to check the prerequisites to deploy OpenShift Cluster on master Node: 
 
 ```shell
+# mkdir -p /etc/origin/master/
+# touch /etc/origin/master/htpasswd
 # ansible-playbook -i ~/inventory.ini playbooks/prerequisites.yml
 ```
 
@@ -177,29 +197,9 @@ Now you have to wait approx 20-30 Minutes to complete the Installation
 Install httpd-tools on master
 
 ```shell
-# htpasswd -c /etc/origin/master/htpasswd admin
+# htpasswd -b /etc/origin/master/htpasswd admin Redhat@123
 # ls -l /etc/origin/master/htpasswd
 # cat /etc/origin/master/htpasswd
-# vim /etc/origin/master/master-config.yaml
-```
-
-```
-  identityProviders:
-  - challenge: true
-    login: true
-    mappingMethod: claim
-    name: allow_all
-    provider:
-      apiVersion: v1
-      kind: HTPasswdPasswordIdentityProvider		## This line
-      file: /etc/origin/master/htpasswd			    ## This line
-```
-
-Restart the below services:
-
-```shell
-# systemctl restart origin-master-controllers.service
-# systemctl restart origin-master-api.service
 ```
 
 Use the below command to assign cluster-admin Role to admin user:
