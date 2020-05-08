@@ -2,9 +2,7 @@
 
 ### Infrastructure Setup:
 
-Create Virtual VM Using with below Deatils  
-
-[Virtual Server]: ../Infrastructure-Setup/README.md
+Create Virtual VM using with following [Virtual Server](../Infrastructure-Setup/README.md)  Link and Below Deatils.  
 
 | Host Name               | IP Address   | CPU  | RAM   | HDD  | OS        | Role        |
 | ----------------------- | ------------ | ---- | ----- | ---- | --------- | ----------- |
@@ -26,7 +24,7 @@ Create Virtual VM Using with below Deatils
 
 ##### Step 2: DNS Server Setup in Workstation Node:
 
-[DNS Server Setup]: Local-DNS-Setup.md
+Create Local DNS Server on Workstation using with [DNS Setup](Local-DNS-Setup.md)
 
 ##### Step 3: Use the below command to update the System on all nodes: 
 
@@ -49,7 +47,7 @@ If you have different kernel in above command output, then you need to reboot al
 ##### Step 4: Once the systems came back UP/ONLINE, Install the following Packages on all nodes:  
 
 ```shell
-# yum install -y wget git  nano net-tools docker-1.13.1 bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct openssl-devel httpd-tools NetworkManager python-cryptography python-devel python-passlib java-1.8.0-openjdk-headless "@Development Tools"
+# yum install -y wget git vim nano net-tools docker-1.13.1 bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct openssl-devel httpd-tools NetworkManager python-cryptography python-devel python-passlib java-1.8.0-openjdk-headless "@Development Tools"
 ```
 
 ##### Step 5: Configure Ansible Repository and Install on master Node only. 
@@ -80,13 +78,6 @@ gpgcheck =  0
 # systemctl start docker && systemctl enable docker && systemctl status docker
 ```
 
-##### Step 7: Clone Openshift-Ansible Git Repo on Master Machine:
-
-```shell
-# git clone https://github.com/openshift/openshift-ansible.git
-# cd openshift-ansible && git fetch && git checkout release-3.9
-```
-
 ##### Step 8: Generate SSH Keys on Master Node and install it on all nodes:
 
 ```shell
@@ -94,7 +85,16 @@ gpgcheck =  0
 # for host in master.lab.example.com worker1.lab.example.com worker2.lab.example.com infra1.lab.example.com ; do ssh-copy-id -i ~/.ssh/id_rsa.pub $host; done
 ```
 
-##### Step 9: Now Create Your Own Inventory file for Ansible as following on master Node: 
+### Install Openshift
+
+##### Step 1: Clone Openshift-Ansible Git Repo on Master Machine:
+
+```shell
+# git clone https://github.com/openshift/openshift-ansible.git
+# cd openshift-ansible && git fetch && git checkout release-3.9
+```
+
+##### Step 2: Now Create Your Own Inventory file for Ansible as following on master Node: 
 
 ```shell
 # vim ~/inventory.ini
@@ -150,7 +150,7 @@ openshift_public_hostname=master.lab.example.com
 openshift_hosted_registry_selector='region=infra'
 ```
 
-##### Step 10: Use the below ansible playbook command to check the prerequisites to deploy OpenShift Cluster on master Node: 
+##### Step 3: Use the below ansible playbook command to check the prerequisites to deploy OpenShift Cluster on master Node: 
 
 ```shell
 # ansible-playbook -i ~/inventory.ini playbooks/prerequisites.yml
@@ -160,9 +160,69 @@ openshift_hosted_registry_selector='region=infra'
 
 
 
-##### Step 11: Once prerequisites completed without any error use the below ansible playbook to Deploy OpenShift Cluster on master Node: 
+##### Step 4: Once prerequisites completed without any error use the below ansible playbook to Deploy OpenShift Cluster on master Node: 
 
 ```shell
 # ansible-playbook -i ~/inventory.ini playbooks/deploy_cluster.yml
 ```
 
+Now you have to wait approx 20-30 Minutes to complete the Installation
+
+
+
+
+
+##### Step 5: Once the Installation is completed, Create a admin user in OpenShift with Password "Redhat@123" from master Node: 
+
+Install httpd-tools on master
+
+```shell
+# htpasswd -c /etc/origin/master/htpasswd admin
+# ls -l /etc/origin/master/htpasswd
+# cat /etc/origin/master/htpasswd
+# vim /etc/origin/master/master-config.yaml
+```
+
+```
+  identityProviders:
+  - challenge: true
+    login: true
+    mappingMethod: claim
+    name: allow_all
+    provider:
+      apiVersion: v1
+      kind: HTPasswdPasswordIdentityProvider		## This line
+      file: /etc/origin/master/htpasswd			    ## This line
+```
+
+Restart the below services:
+
+```shell
+# systemctl restart origin-master-controllers.service
+# systemctl restart origin-master-api.service
+```
+
+Use the below command to assign cluster-admin Role to admin user:
+
+```shell
+# oc adm policy add-cluster-role-to-user cluster-admin admin
+```
+
+##### Step 6: Use the below command to login as admin user on CLI
+
+```bash
+# oc login
+```
+
+```
+Authentication required for https://master.lab.example.com:8443 (openshift)
+Username: admin
+Password: Redhat@123
+Login successful.
+```
+
+```shell
+# oc whoami
+```
+
+Login GUI  with https://master.lab.example.com:8443
