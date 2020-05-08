@@ -1,0 +1,149 @@
+# Deploying OpenShift 3.9  Cluster
+
+### Infrastructure Setup:
+
+| Host Name               | IP Address   | CPU  | RAM   | HDD  | OS        | Role        |
+| ----------------------- | ------------ | ---- | ----- | ---- | --------- | ----------- |
+| master.lab.example.com  | 192.168.1.11 | 4    | 10240 | 100  | Centos7.X | Master Node |
+| worker1.lab.example.com | 192.168.1.12 | 4    | 10240 | 100  | Centos7.X | Worker Node |
+| worker2.lab.example.com | 192.168.1.13 | 4    | 10240 | 100  | Centos7.x | Worker Node |
+| infra1.lab.example.com  | 192.168.1.14 | 4    | 10240 | 100  | Centos7.x | Infra1 Node |
+
+### Preparing Nodes:
+
+##### Step 1: Set the hostname:
+
+```shell
+# hostnamectl set-hostname master.lab.example.com
+# bash 
+```
+
+##### Step 2: Use the below command to update the System on all nodes: 
+
+```shell
+# yum update -y
+```
+
+Use the below command to compare the kernel on all nodes: 
+
+```shell
+# echo "Latest Installed Kernel : $(rpm -q kernel --last | head -n 1 | awk '{print $1}')" ; echo "Current Running Kernel  : kernel-$(uname -r)"
+```
+
+If you have different kernel in above command output, then you need to reboot all the system. otherwise jump to Step 3.
+
+```shell
+# reboot
+```
+
+##### Step 3: Once the systems came back UP/ONLINE, Install the following Packages on all nodes:  
+
+```shell
+# yum install -y wget git  nano net-tools docker-1.13.1 bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct openssl-devel httpd-tools NetworkManager python-cryptography python-devel python-passlib java-1.8.0-openjdk-headless "@Development Tools"
+```
+
+##### Step 4: Configure Ansible Repository and Install on master Node only. 
+
+```shell
+# yum install epel-release -y
+# yum -y install ansible-2.6*
+```
+
+##### Step 5:  Start and Enable NetworkManager and Docker Services on all nodes:
+
+```shell
+# systemctl start NetworkManager
+# systemctl enable NetworkManager
+# systemctl status NetworkManager
+```
+
+```shell
+# systemctl start docker && systemctl enable docker && systemctl status docker
+```
+
+##### Step 6: Clone Openshift-Ansible Git Repo on Master Machine:
+
+```shell
+# git clone https://github.com/openshift/openshift-ansible.git
+# cd openshift-ansible && git fetch && git checkout release-3.9
+```
+
+##### Step 7: Generate SSH Keys on Master Node and install it on all nodes:
+
+```shell
+# ssh-keygen -f ~/.ssh/id_rsa -N ''
+# for host in master.lab.example.com worker1.lab.example.com worker2.lab.example.com infra1.lab.example.com ; do ssh-copy-id -i ~/.ssh/id_rsa.pub $host; done
+```
+
+##### Step 8: Now Create Your Own Inventory file for Ansible as following on master Node: 
+
+```shell
+# vim ~/inventory.ini
+```
+
+```
+[OSEv3:children]
+masters
+nodes
+etcd
+
+
+[masters]
+master.lab.example.com openshift_ip=192.168.1.11
+
+[etcd]
+master.lab.example.com openshift_ip=192.168.1.11
+
+[nodes]
+master.lab.example.com openshift_ip=192.168.1.11 openshift_schedulable=true
+worker1.lab.example.com openshift_ip=192.168.1.12 openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+worker2.lab.example.com openshift_ip=192.168.1.13 openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+infra1.lab.example.com openshift_ip=192.168.1.14 openshift_schedulable=true openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+
+[OSEv3:vars]
+debug_level=4
+ansible_ssh_user=root
+openshift_enable_service_catalog=true
+ansible_service_broker_install=true
+
+containerized=false
+os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+openshift_disable_check=disk_availability,docker_storage,memory_availability,docker_image_availability
+
+openshift_node_kubelet_args={'pods-per-core': ['15']}
+
+deployment_type=origin
+openshift_deployment_type=origin
+
+openshift_release=v3.9.0
+openshift_pkg_version=-3.9.0
+openshift_image_tag=v3.9.0
+openshift_service_catalog_image_version=v3.9.0
+template_service_broker_image_version=v3.9.0
+osm_use_cockpit=true
+
+# put the router on dedicated infra1 node
+openshift_hosted_router_selector='region=infra'
+openshift_master_default_subdomain=apps.lab.example.com
+openshift_public_hostname=master.lab.example.com
+
+# put the image registry on dedicated infra1 node
+openshift_hosted_registry_selector='region=infra'
+```
+
+##### Step 9: Use the below ansible playbook command to check the prerequisites to deploy OpenShift Cluster on master Node: 
+
+```shell
+# ansible-playbook -i ~/inventory.ini playbooks/prerequisites.yml
+```
+
+
+
+
+
+##### Step 10: Once prerequisites completed without any error use the below ansible playbook to Deploy OpenShift Cluster on master Node: 
+
+```shell
+# ansible-playbook -i ~/inventory.ini playbooks/deploy_cluster.yml
+```
+
