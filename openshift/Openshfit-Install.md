@@ -2,6 +2,10 @@
 
 ### Infrastructure Setup:
 
+Create Virtual VM Using with below Deatils  
+
+[Virtual Server]: ../Infrastructure-Setup/README.md
+
 | Host Name               | IP Address   | CPU  | RAM   | HDD  | OS        | Role        |
 | ----------------------- | ------------ | ---- | ----- | ---- | --------- | ----------- |
 | master.lab.example.com  | 192.168.1.11 | 4    | 10240 | 100  | Centos7.X | Master Node |
@@ -11,14 +15,20 @@
 
 ### Preparing Nodes:
 
-##### Step 1: Set the hostname:
+##### Step 1: Set the hostname with respective nodes:
 
 ```shell
-# hostnamectl set-hostname master.lab.example.com
-# bash 
+# hostnamectl set-hostname master.lab.example.com   # In Master Node
+# hostnamectl set-hostname worker1.lab.example.com  # In Worker1 Node
+# hostnamectl set-hostname worker2.lab.example.com  # In Worker2 Node
+# hostnamectl set-hostname infra1.lab.example.com   # In Infra1 Node
 ```
 
-##### Step 2: Use the below command to update the System on all nodes: 
+##### Step 2: DNS Server Setup in Workstation Node:
+
+[DNS Server Setup]: Local-DNS-Setup.md
+
+##### Step 3: Use the below command to update the System on all nodes: 
 
 ```shell
 # yum update -y
@@ -30,52 +40,61 @@ Use the below command to compare the kernel on all nodes:
 # echo "Latest Installed Kernel : $(rpm -q kernel --last | head -n 1 | awk '{print $1}')" ; echo "Current Running Kernel  : kernel-$(uname -r)"
 ```
 
-If you have different kernel in above command output, then you need to reboot all the system. otherwise jump to Step 3.
+If you have different kernel in above command output, then you need to reboot all the system. otherwise jump to Step 4.
 
 ```shell
 # reboot
 ```
 
-##### Step 3: Once the systems came back UP/ONLINE, Install the following Packages on all nodes:  
+##### Step 4: Once the systems came back UP/ONLINE, Install the following Packages on all nodes:  
 
 ```shell
 # yum install -y wget git  nano net-tools docker-1.13.1 bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct openssl-devel httpd-tools NetworkManager python-cryptography python-devel python-passlib java-1.8.0-openjdk-headless "@Development Tools"
 ```
 
-##### Step 4: Configure Ansible Repository and Install on master Node only. 
+##### Step 5: Configure Ansible Repository and Install on master Node only. 
 
 ```shell
-# yum install epel-release -y
-# yum -y install ansible-2.6*
+# vim /etc/yum.repos.d/ansible.repo
 ```
 
-##### Step 5:  Start and Enable NetworkManager and Docker Services on all nodes:
+```
+[ansible]
+name = Ansible Repo
+baseurl = https://releases.ansible.com/ansible/rpm/release/epel-7-x86_64/
+enabled = 1
+gpgcheck =  0
+```
 
 ```shell
-# systemctl start NetworkManager
-# systemctl enable NetworkManager
-# systemctl status NetworkManager
+# yum -y install ansible-2.6* pyOpenSSL
+```
+
+##### Step 6:  Start and Enable NetworkManager and Docker Services on all nodes:
+
+```shell
+# systemctl start NetworkManager && systemctl enable NetworkManager && systemctl status NetworkManager
 ```
 
 ```shell
 # systemctl start docker && systemctl enable docker && systemctl status docker
 ```
 
-##### Step 6: Clone Openshift-Ansible Git Repo on Master Machine:
+##### Step 7: Clone Openshift-Ansible Git Repo on Master Machine:
 
 ```shell
 # git clone https://github.com/openshift/openshift-ansible.git
 # cd openshift-ansible && git fetch && git checkout release-3.9
 ```
 
-##### Step 7: Generate SSH Keys on Master Node and install it on all nodes:
+##### Step 8: Generate SSH Keys on Master Node and install it on all nodes:
 
 ```shell
 # ssh-keygen -f ~/.ssh/id_rsa -N ''
 # for host in master.lab.example.com worker1.lab.example.com worker2.lab.example.com infra1.lab.example.com ; do ssh-copy-id -i ~/.ssh/id_rsa.pub $host; done
 ```
 
-##### Step 8: Now Create Your Own Inventory file for Ansible as following on master Node: 
+##### Step 9: Now Create Your Own Inventory file for Ansible as following on master Node: 
 
 ```shell
 # vim ~/inventory.ini
@@ -131,7 +150,7 @@ openshift_public_hostname=master.lab.example.com
 openshift_hosted_registry_selector='region=infra'
 ```
 
-##### Step 9: Use the below ansible playbook command to check the prerequisites to deploy OpenShift Cluster on master Node: 
+##### Step 10: Use the below ansible playbook command to check the prerequisites to deploy OpenShift Cluster on master Node: 
 
 ```shell
 # ansible-playbook -i ~/inventory.ini playbooks/prerequisites.yml
@@ -141,7 +160,7 @@ openshift_hosted_registry_selector='region=infra'
 
 
 
-##### Step 10: Once prerequisites completed without any error use the below ansible playbook to Deploy OpenShift Cluster on master Node: 
+##### Step 11: Once prerequisites completed without any error use the below ansible playbook to Deploy OpenShift Cluster on master Node: 
 
 ```shell
 # ansible-playbook -i ~/inventory.ini playbooks/deploy_cluster.yml

@@ -1,2 +1,2 @@
-# Content for Docker and Kubernetes
+# Content for Openshift
 
