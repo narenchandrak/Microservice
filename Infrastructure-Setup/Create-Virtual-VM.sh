@@ -20,7 +20,7 @@ if [ "$?" -eq 0 ]; then
 fi
 
 # Directory to store images
-DIR=~/virt/images/
+DIR=~/Microservice/images/
 
 # Location of cloud image
 IMAGE=$DIR/CentOS-7-x86_64-GenericCloud.qcow2
