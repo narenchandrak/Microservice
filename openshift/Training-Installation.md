@@ -19,7 +19,7 @@ master.lab.example.com
 master.lab.example.com
 
 [nodes]
-master.lab.example.com openshift_schedulable=true
+master.lab.example.com openshift_schedulable=true ansible_connection=local ansible_become=yes
 worker1.lab.example.com openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
 worker2.lab.example.com openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
 infra1.lab.example.com openshift_schedulable=true openshift_node_labels="{'region': 'infra', 'zone': 'default'}"

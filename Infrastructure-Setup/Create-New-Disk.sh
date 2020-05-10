@@ -7,17 +7,18 @@ if ! [[ $# -eq 3 ]]; then
 fi
 
 DISK="/var/lib/libvirt/images/$1-$2.qcow2"
-SIZE=$3
+SIZE=$3G
 echo "$(date -R) Creating Empty RAW $2 with size of $SIZE"
-qemu-img create -f qcow2 $DISK $SIZE
+qemu-img create -f qcow2 ${DISK} ${SIZE}
+dd if=/dev/zero of=${DISK} bs=1G count=$3
 if [[ "$?" -eq 0 ]]; then
     echo "$(date -R) New Disk $2 Successfully created"
-    echo "$(date -R) Attaching new disk $2 to $2 VM"
+    echo "$(date -R) Attaching new disk $2 to $1 VM"
 else
     echo "$(date -R) New Disk $2 Failed to create"
     exit 1
 fi
-virsh attach-disk $1 --source $DISK --target $2 --persistent
+virsh attach-disk $1 --source ${DISK} --target $2 --persistent
 if [[ "$?" -eq 0 ]]; then
     echo "$(date -R) Successfully new $2 disk attached to $1 VM"
 else

@@ -62,6 +62,5 @@ Note: Replace with above RSA Key
 ### Create New Disk
 
 ```shell
-# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20G
+# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20
 ```
-

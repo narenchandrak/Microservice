@@ -89,7 +89,6 @@ EOF
 
 # docker-storage-setup
 # lsblk
-# reboot
 ```
 
 Reference: 
