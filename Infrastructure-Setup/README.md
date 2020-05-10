@@ -58,3 +58,10 @@ Note: Replace with above RSA Key
 ```shell
 # sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh master
 ```
+
+### Create New Disk
+
+```shell
+# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20G
+```
+

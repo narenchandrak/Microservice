@@ -14,19 +14,19 @@ etcd
 nfs
 
 [masters]
-master.lab.example.com openshift_ip=192.168.1.11
+master.lab.example.com
 
 [etcd]
-master.lab.example.com openshift_ip=192.168.1.11
+master.lab.example.com
 
 [nfs]
-master.lab.example.com openshift_ip=192.168.1.11
+master.lab.example.com
 
 [nodes]
-master.lab.example.com openshift_ip=192.168.1.11 openshift_schedulable=true
-worker1.lab.example.com openshift_ip=192.168.1.12 openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
-worker2.lab.example.com openshift_ip=192.168.1.13 openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
-infra1.lab.example.com openshift_ip=192.168.1.14 openshift_schedulable=true openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+master.lab.example.com openshift_schedulable=true
+worker1.lab.example.com openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+worker2.lab.example.com openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+infra1.lab.example.com openshift_schedulable=true openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
 
 [OSEv3:vars]
 debug_level=4
@@ -101,7 +101,7 @@ openshift_hosted_registry_storage_volume_size=10Gi
 # ansible-playbook -i ~/inventory.ini playbooks/deploy_cluster.yml
 ```
 
-Now you have to wait approx 20-30 Minutes to complete the Installation
+Now you have to wait approx. 60-80 Minutes to complete the Installation
 
 
 

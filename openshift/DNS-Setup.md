@@ -55,6 +55,7 @@ master                 IN  A   192.168.122.11
 worker1                IN  A   192.168.122.12
 worker2                IN  A   192.168.122.13
 infra1                 IN  A   192.168.122.14
+server				   IN  A   192.168.122.15
 @                      IN  A   192.168.122.11
 ```
 
@@ -80,6 +81,7 @@ master  IN  A           192.168.122.11
 12      IN  PTR         worker1.lab.example.com.
 13      IN  PTR         worker2.lab.example.com.
 14      IN  PTR         infra1.lab.example.com.
+15      IN  PTR         server.lab.example.com.
 ```
 
 ##### Step 3: Start the DNS Service:

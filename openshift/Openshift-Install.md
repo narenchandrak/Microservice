@@ -1,16 +1,16 @@
-# Deploying OpenShift 3.9  Cluster
+Deploying OpenShift 3.9  Cluster
 
 ### Infrastructure Setup:
 
-Create Virtual VM using with following [Virtual Server](../Infrastructure-Setup/README.md)  Link and Below Deatils.  
+Create Virtual VM using with following [Virtual Server](../Infrastructure-Setup/README.md)  Link and Below Details.  
 
-| Host Name               | IP Address     | CPU  | RAM   | HDD  | OS        | Role        |
-| ----------------------- | -------------- | ---- | ----- | ---- | --------- | ----------- |
-| master.lab.example.com  | 192.168.122.11 | 4    | 16384 | 100  | Centos7.X | Master Node |
-| worker1.lab.example.com | 192.168.122.12 | 2    | 8192  | 100  | Centos7.X | Worker Node |
-| worker2.lab.example.com | 192.168.122.13 | 2    | 8192  | 100  | Centos7.x | Worker Node |
-| infra1.lab.example.com  | 192.168.122.14 | 2    | 8192  | 100  | Centos7.x | Infra1 Node |
-| server.lab.example.com  | 192.168.122.15 | 2    | 4096  | 100  | Centos7.x | Server Node |
+| Host Name               | CPU  | RAM   | Disk-1 | Disk-2 | OS        | Role        |
+| ----------------------- | ---- | ----- | ------ | ------ | --------- | ----------- |
+| master.lab.example.com  | 4    | 16384 | 50GB   | 20GB   | Centos7.X | Master Node |
+| worker1.lab.example.com | 2    | 8192  | 50GB   | 20GB   | Centos7.X | Worker Node |
+| worker2.lab.example.com | 2    | 8192  | 50GB   | 20GB   | Centos7.x | Worker Node |
+| infra1.lab.example.com  | 2    | 8192  | 50GB   | 20GB   | Centos7.x | Infra Node  |
+| server.lab.example.com  | 2    | 4096  | 50GB   | 20GB   | Centos7.x | NFS & DNS   |
 
 References:
 
@@ -29,15 +29,7 @@ References:
 # hostnamectl set-hostname server.lab.example.com   # In server Node( DNS & NFS)
 ```
 
-##### Step 2: DNS Server Setup in Server Node
-
-Create DNS Service on Server Node using with [DNS Setup](Local-DNS-Setup.md)
-
-##### Step 3: NFS Server Setup in Server Node
-
-Create NFS Service on Server Node using with [NFS Setup](Local-DNS-Setup)
-
-##### Step 4: Use the below command to update the System on all nodes
+##### Step 2: Use the below command to update the System on all nodes
 
 ```shell
 # yum update -y
@@ -55,13 +47,13 @@ If you have different kernel in above command output, then you need to reboot al
 # reboot
 ```
 
-##### Step 5: Once the systems came back UP/ONLINE, Install the following Packages on all nodes
+##### Step 3: Once the systems came back UP/ONLINE, Install the following Packages on all nodes(Excluding Server Node)
 
 ```shell
-# yum install -y wget git vim nano net-tools docker-1.13.1 bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct openssl-devel httpd-tools NetworkManager python-cryptography python-devel python-passlib java-1.8.0-openjdk-headless "@Development Tools"
+# yum install -y wget git vim nano nfs-utils net-tools docker-1.13.1 bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct openssl-devel httpd-tools NetworkManager python-cryptography python-devel python-passlib java-1.8.0-openjdk-headless "@Development Tools"
 ```
 
-##### Step 6: Configure Ansible Repository and Install on master Node only. 
+##### Step 4: Configure Ansible Repository and Install on master Node only. 
 
 ```shell
 # vim /etc/yum.repos.d/ansible.repo
@@ -79,15 +71,32 @@ gpgcheck =  0
 # yum -y install ansible-2.6* pyOpenSSL
 ```
 
-##### Step 7: Configuring Docker Storage
+##### Step 5: DNS Server Setup in Server Node
 
+Create DNS Service on Server Node using with [DNS Setup](DNS-Setup.md)
 
+##### Step 6: NFS Server Setup in Server Node
+
+Create NFS Service on Server Node using with [NFS Setup](NFS-Setup.md)
+
+##### Step 7: Configuring Docker Storage on all nodes(Excluding Server Node)
+
+```shell
+# sudo cat <<EOF > /etc/sysconfig/docker-storage-setup 
+DEVS=/dev/vdb 
+VG=docker-vg 
+EOF
+
+# docker-storage-setup
+# lsblk
+# reboot
+```
 
 Reference: 
 
 1. https://docs.okd.io/3.9/install_config/install/host_preparation.html#configuring-docker-storage
 
-##### Step 8:  Start and Enable NetworkManager and Docker Services on all nodes
+##### Step 8:  Start and Enable NetworkManager and Docker Services on all nodes(Excluding Server Node)
 
 ```shell
 # systemctl start NetworkManager && systemctl enable NetworkManager && systemctl status NetworkManager
