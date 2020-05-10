@@ -18,7 +18,7 @@ Install and Configure Bind DNS to resolve hostnames and Cloud Applications names
 
 ```
 	#do the following changes:
-	listen-on port 53 { 127.0.0.1; 192.168.1.11; };
+	listen-on port 53 { 127.0.0.1; 192.168.122.11; };
 	allow-query     { any };
 	
 	zone "lab.example.com" IN {
@@ -27,7 +27,7 @@ Install and Configure Bind DNS to resolve hostnames and Cloud Applications names
                 allow-update { none; };
     };
     
-    zone "1.168.192.in-addr.arpa" IN {
+    zone "122.168.192.in-addr.arpa" IN {
                 type master;
                 file "reverse.lab.example.com";
                 allow-update { none; };
@@ -51,11 +51,11 @@ $TTL 86400
 ; name servers - NS records (Pointing to the Master Node hostname A record below)
 @       IN  NS          master.lab.example.com.
 
-master                 IN  A   192.168.1.11
-worker1                IN  A   192.168.1.12
-worker2                IN  A   192.168.1.13
-infra1                 IN  A   192.168.1.14
-@                      IN  A   192.168.1.11
+master                 IN  A   192.168.122.11
+worker1                IN  A   192.168.122.12
+worker2                IN  A   192.168.122.13
+infra1                 IN  A   192.168.122.14
+@                      IN  A   192.168.122.11
 ```
 
 ```bash
@@ -74,7 +74,7 @@ $TTL 86400
 
 ; name servers - NS records (Pointing to the master hostname in forwad.lab.example.com)
 @       IN  NS          master.lab.example.com.
-master  IN  A           192.168.1.11
+master  IN  A           192.168.122.11
 ; 192.168.1.0/24 - PTR Records
 11      IN  PTR         master.lab.example.com.
 12      IN  PTR         worker1.lab.example.com.
@@ -104,9 +104,7 @@ Enable Port for the DNS
 Start and Enable DNS Service
 
 ```bash
-# systemctl enable named
-# systemctl status named
-# systemctl start named
+# systemctl enable named && systemctl start named && systemctl status named
 ```
 
 Test DNS configuration and zone files for any syntax errors
@@ -117,3 +115,12 @@ Test DNS configuration and zone files for any syntax errors
 # named-checkzone lab.example.com /var/named/reverse.lab.example.com
 ```
 
+##### Step 4: Added the DNS Server IP Address in all Nodes
+
+```shell
+# vim /etc/reslove.conf
+	nameserver 192.168.122.11
+# chattr + /etc/reslove.conf
+# Vim /etc/sysconfig/network-scripts/ifcfg-eth0
+	peerdns=no
+```

@@ -69,7 +69,7 @@ pushd $DIR/$1 > /dev/null
 # Hostname management
 preserve_hostname: False
 hostname: $1
-fqdn: $1.$DOAMIN
+fqdn: $1.$DOMAIN
 
 # Remove cloud-init when finished with it
 runcmd:

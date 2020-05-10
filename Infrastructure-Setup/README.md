@@ -50,7 +50,7 @@ Note: Replace with above RSA Key
 # sed -i 's/MEM=2048/MEM=8192/g' ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh
 # sed -i 's/CPUS=2/CPUS=6/g' ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh
 # sed -i 's/SIZE=10G/SIZE=20G/g' ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh
-# sed -i 's/DOMAIN=example.com/DOMAIN=lab.example.com' ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh
+# sed -i 's/DOMAIN=example.com/DOMAIN=lab.example.com/g' ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh
 ```
 
 ##### Step 8: Create Instances
