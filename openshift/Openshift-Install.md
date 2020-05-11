@@ -1,4 +1,4 @@
-Deploying OpenShift 3.9  Cluster
+# Deploying OpenShift 3.9  Cluster
 
 ### Infrastructure Setup:
 
@@ -6,11 +6,10 @@ Create Virtual VM using with following [Virtual Server](../Infrastructure-Setup/
 
 | Host Name               | CPU  | RAM   | Disk-1 | Disk-2 | OS        | Role        |
 | ----------------------- | ---- | ----- | ------ | ------ | --------- | ----------- |
-| master.lab.example.com  | 4    | 16384 | 50GB   | 20GB   | Centos7.X | Master Node |
+| master.lab.example.com  | 6    | 20480 | 150GB  | 20GB   | Centos7.X | Master Node |
 | worker1.lab.example.com | 2    | 8192  | 50GB   | 20GB   | Centos7.X | Worker Node |
 | worker2.lab.example.com | 2    | 8192  | 50GB   | 20GB   | Centos7.x | Worker Node |
-| infra1.lab.example.com  | 2    | 8192  | 50GB   | 20GB   | Centos7.x | Infra Node  |
-| server.lab.example.com  | 2    | 4096  | 50GB   | 20GB   | Centos7.x | NFS & DNS   |
+| infra1.lab.example.com  | 2    | 8192  | 50GB   | 20GB   | Centos7.x | Infra Nod   |
 
 References:
 
@@ -26,7 +25,6 @@ References:
 # hostnamectl set-hostname worker1.lab.example.com  # In Worker1 Node
 # hostnamectl set-hostname worker2.lab.example.com  # In Worker2 Node
 # hostnamectl set-hostname infra1.lab.example.com   # In Infra1 Node
-# hostnamectl set-hostname server.lab.example.com   # In server Node( DNS & NFS)
 ```
 
 ##### Step 2: Use the below command to update the System on all nodes
@@ -56,33 +54,41 @@ If you have different kernel in above command output, then you need to reboot al
 ##### Step 4: Configure Ansible Repository and Install on master Node only. 
 
 ```shell
-# vim /etc/yum.repos.d/ansible.repo
-```
-
-```
-[ansible]
-name = Ansible Repo
-baseurl = https://releases.ansible.com/ansible/rpm/release/epel-7-x86_64/
-enabled = 1
-gpgcheck =  0
-```
-
-```shell
-# yum -y install ansible-2.6* pyOpenSSL
+# curl -o ansible.rpm https://releases.ansible.com/ansible/rpm/release/epel-7-x86_64/ansible-2.6.5-1.el7.ans.noarch.rpm
+# yum -y install ansible.rpm pyOpenSSL
 ```
 
 ##### Step 5: DNS Server Setup in Server Node
 
-Create DNS Service on Server Node using with [DNS Setup](DNS-Setup.md)
+Create DNS Service on Master Node using with [DNS Setup](DNS-Setup.md)
 
-##### Step 6: NFS Server Setup in Server Node
-
-Create NFS Service on Server Node using with [NFS Setup](NFS-Setup.md)
-
-##### Step 7: Configuring Docker Storage on all nodes(Excluding Server Node)
+Edit /etc/sysconfig/network-scripts/ifcfg-eth0 file on all nodes
 
 ```shell
-# sudo cat <<EOF > /etc/sysconfig/docker-storage-setup 
+# vim /etc/sysconfig/network-scripts/ifcfg-eth0
+TYPE="Ethernet"
+BOOTPROTO="none"
+IPADDR=192.168.122.x
+NETMASK=255.255.255.0
+GATEWAY=192.168.122.1
+DNS1=192.168.122.1
+DNS2=192.168.122.x
+DEFROUTE="yes"
+IPV6INIT="no"
+NAME="eth0"
+DEVICE="eth0"
+ONBOOT="yes"
+HWADDR=xx:xx:xx:xx:xx:xx
+```
+
+##### Step 6: NFS Server Setup on Master Node
+
+Create NFS Service on Master Node using with [NFS Setup](NFS-Setup.md)
+
+##### Step 7: Configuring Docker Storage on all nodes
+
+```shell
+# cat <<EOF > /etc/sysconfig/docker-storage-setup 
 DEVS=/dev/vdb 
 VG=docker-vg 
 EOF
@@ -95,7 +101,7 @@ Reference:
 
 1. https://docs.okd.io/3.9/install_config/install/host_preparation.html#configuring-docker-storage
 
-##### Step 8:  Start and Enable NetworkManager and Docker Services on all nodes(Excluding Server Node)
+##### Step 8:  Start and Enable NetworkManager and Docker Services on all nodes
 
 ```shell
 # systemctl start NetworkManager && systemctl enable NetworkManager && systemctl status NetworkManager
@@ -111,6 +117,19 @@ Reference:
 # ssh-keygen -f ~/.ssh/id_rsa -N ''
 # for host in master.lab.example.com worker1.lab.example.com worker2.lab.example.com infra1.lab.example.com ; do ssh-copy-id -i ~/.ssh/id_rsa.pub $host; done
 ```
+
+##### Step 10: registry-console Fix on all the nodes
+
+```shell
+# wget http://mirror.centos.org/centos/7/os/x86_64/Packages/python-rhsm-certificates-1.19.10-1.el7_4.x86_64.rpm
+# rpm2cpio python-rhsm-certificates-1.19.10-1.el7_4.x86_64.rpm | cpio -iv --to-stdout ./etc/rhsm/ca/redhat-uep.pem | tee /etc/rhsm/ca/redhat-uep.pem
+```
+
+References:
+
+1. https://github.com/openshift/openshift-ansible/issues/12115
+2. https://github.com/cockpit-project/cockpit/issues/13654
+3. https://bugs.centos.org/view.php?id=14785
 
 ### Install Openshift
 

@@ -28,7 +28,7 @@ infra1.lab.example.com openshift_schedulable=true openshift_node_labels="{'regio
 debug_level=4
 ansible_ssh_user=root
 openshift_enable_service_catalog=true
-ansible_service_broker_install=true
+ansible_service_broker_install=flase
 
 containerized=false
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
@@ -45,6 +45,9 @@ openshift_image_tag=v3.9.0
 openshift_service_catalog_image_version=v3.9.0
 template_service_broker_image_version=v3.9.0
 osm_use_cockpit=true
+openshift_cockpit_deployer_prefix='registry.access.redhat.com/openshift3/'
+openshift_cockpit_deployer_basename='registry-console'
+openshift_cockpit_deployer_version='v3.9'
 
 
 # put the router on dedicated infra1 node
@@ -88,7 +91,20 @@ Now you have to wait approx 20-30 Minutes to complete the Installation
     Re-type new password: Redhat@123
 # ls -l /etc/origin/master/htpasswd
 # cat /etc/origin/master/htpasswd
+# vim /etc/origin/master/master-config.yaml
+      identityProviders:
+      - challenge: true
+        login: true
+        mappingMethod: claim
+        name: allow_all
+        provider:
+          apiVersion: v1
+          kind: HTPasswdPasswordIdentityProvider		## changes this line
+          file: /etc/origin/master/htpasswd			    ## changes this line
+# systemctl restart origin-master-controllers.service
+# systemctl restart origin-master-api.service
 # oc adm policy add-cluster-role-to-user cluster-admin admin
+
 ```
 
 ##### Step 5: Use the below command to login as admin user on CLI

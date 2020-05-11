@@ -17,21 +17,21 @@ Install and Configure Bind DNS to resolve hostnames and Cloud Applications names
 ```
 
 ```
-	#do the following changes:
-	listen-on port 53 { 127.0.0.1; 192.168.122.11; };
-	allow-query     { any };
-	
-	zone "lab.example.com" IN {
-                type master;
-                file "forward.lab.example.com";
-                allow-update { none; };
-    };
-    
-    zone "122.168.192.in-addr.arpa" IN {
-                type master;
-                file "reverse.lab.example.com";
-                allow-update { none; };
-    };
+#do the following changes:
+listen-on port 53 { 127.0.0.1; 192.168.122.11; };
+allow-query     { any };
+
+# Added this line before "include "/etc/named.rfc1912.zones";"
+zone "lab.example.com" IN {
+		type master;
+		file "forward.lab.example.com";
+		allow-update { none; };
+};
+zone "122.168.192.in-addr.arpa" IN {
+		type master;
+		file "reverse.lab.example.com";
+		allow-update { none; };
+};
 ```
 
 ```bash
@@ -55,7 +55,7 @@ master                 IN  A   192.168.122.11
 worker1                IN  A   192.168.122.12
 worker2                IN  A   192.168.122.13
 infra1                 IN  A   192.168.122.14
-server				   IN  A   192.168.122.15
+server                 IN  A   192.168.122.15
 @                      IN  A   192.168.122.11
 ```
 
@@ -76,7 +76,7 @@ $TTL 86400
 ; name servers - NS records (Pointing to the master hostname in forwad.lab.example.com)
 @       IN  NS          master.lab.example.com.
 master  IN  A           192.168.122.11
-; 192.168.1.0/24 - PTR Records
+; 192.168.122.0/24 - PTR Records
 11      IN  PTR         master.lab.example.com.
 12      IN  PTR         worker1.lab.example.com.
 13      IN  PTR         worker2.lab.example.com.
@@ -117,12 +117,3 @@ Test DNS configuration and zone files for any syntax errors
 # named-checkzone lab.example.com /var/named/reverse.lab.example.com
 ```
 
-##### Step 4: Added the DNS Server IP Address in all Nodes
-
-```shell
-# vim /etc/reslove.conf
-	nameserver 192.168.122.11
-# chattr + /etc/reslove.conf
-# Vim /etc/sysconfig/network-scripts/ifcfg-eth0
-	peerdns=no
-```

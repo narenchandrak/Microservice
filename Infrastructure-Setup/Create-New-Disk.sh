@@ -2,7 +2,7 @@
 if ! [[ $# -eq 3 ]]; then
     echo "Usage: $0 <node-name> <disk-name> <disk-size>"
     echo "Example:"
-    echo "$0 master vdb 20G"
+    echo "$0 master vdb 20"
     exit 1
 fi
 
