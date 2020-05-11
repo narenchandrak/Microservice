@@ -1,0 +1,6 @@
+[master]
+master.example.com
+
+[slave]
+slave1.example.com
+slave2.example.com

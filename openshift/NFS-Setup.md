@@ -11,7 +11,7 @@
 ```shell
 # mkdir -p /exports/registry
 # chmod o+rwx /exports/registry/
-# echo "/exports/registry   192.168.1.0/24(rw,sync)" >> /etc/exports
+# echo "/exports/registry   *(rw,sync)" >> /etc/exports
 ```
 
 ##### Step 3: Start & Verify NFS Service Configuration

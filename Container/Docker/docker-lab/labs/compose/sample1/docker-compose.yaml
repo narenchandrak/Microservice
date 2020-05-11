@@ -1,0 +1,12 @@
+version: '2'
+
+## same as running the below
+## docker container run -d --name mynginx1 -p 8009:80 -v $(pwd):/usr/share/nginx/html nginx
+#
+services:
+  mynginx1:
+    image: nginx
+    volumes:
+      - ./:/usr/share/nginx/html
+    ports:
+      - '8009:80'

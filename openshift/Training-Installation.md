@@ -110,6 +110,7 @@ Now you have to wait approx 20-30 Minutes to complete the Installation
 ##### Step 5: Use the below command to login as admin user on CLI
 
 ```bash
+# oc completion bash >>/etc/bash_completion.d/oc_completion
 # oc login
 ```
 

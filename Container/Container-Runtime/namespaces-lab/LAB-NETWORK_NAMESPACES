@@ -1,0 +1,65 @@
+# Network NameSpaces
+1. Create two namespaces, called "myns1" and "myns2":
+   ``` 
+    ip netns add myns1 
+    ip netns add myns2
+   ``` 
+2. Display the network namespaces
+   ```
+    ls -l /var/run/netnsp /*/*/
+   ```
+   ```
+    Note:
+        a. Invoking the unshare() system call with CLONE_NEWNET. 
+        b. unshare() does not trigger cloning of a process
+        c. It does create a new namespace (a network namespace, because of the CLONE_NEWNET flag).
+   ```
+3. To list the network namespaces
+   ```
+    ip netns list
+   ``` 
+4. To monitor the network namespaces
+   ```
+    ip netns monitor
+   ```
+5. To Delete a network namespaces
+   ```
+    ip netns del myns2
+   ```
+Note:
+    This unmounts and removes /var/run/netns/myns2
+6. To move a network interface (eth0) to myns1 network namespace by
+   ```
+    ip link set eth0 netns myns1
+   ``` 
+7. To start a bash shell in a new namespace by
+   ```
+    ip netns exec myns1 bash
+   ```
+8. Recent additions – add “all” parameter to exec to allow exec on each netns
+   ```
+    ip -all netns exec ip link
+   ```
+
+# Script for connecting two namespaces 
+
+    1. ip netns add netA 
+    2. ip netns add netB 
+    3. ip link add name vm1-eth0 type veth peer name vm1-eth0.1 
+    4. ip link add name vm2-eth0 type veth peer name vm2-eth0.1 
+    5. ip link set vm1-eth0.1 netns netA 
+    6. ip link set vm2-eth0.1 netns netB 
+    7. ip netns exec netA ip l set lo up 
+    8. ip netns exec netA ip l set vm1-eth0.1 up 
+    9. ip netns exec netB ip l set lo up 
+    10. ip netns exec netB ip l set vm2-eth0.1 up 
+    11. ip netns exec netA ip a add 192.168.0.10 dev vm1-eth0.1 
+    12. ip netns exec netB ip a add 192.168.0.20 dev vm2-eth0.1 
+    13. ip netns exec netA ip r add 192.168.0.0/24 dev vm1-eth0.1 
+    14. ip netns exec netB ip r add 192.168.0.0/24 dev vm2-eth0.1
+    15. brctl addbr mybr 
+    16. ip l set mybr up 
+    17. ip l set vm1-eth0 up 
+    18. brctl addif mybr vm1-eth0 
+    19. ip l set vm2-eth0 up 
+    20. brctl addif mybr vm2-eth0
