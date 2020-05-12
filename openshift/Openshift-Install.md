@@ -6,21 +6,28 @@ Create Virtual VM using with following [Virtual Server](../Infrastructure-Setup/
 
 | Host Name               | CPU  | RAM   | Disk-1 | Disk-2 | OS        | Role        |
 | ----------------------- | ---- | ----- | ------ | ------ | --------- | ----------- |
-| master.lab.example.com  | 6    | 20480 | 150GB  | 20GB   | Centos7.X | Master Node |
+| master.lab.example.com  | 4    | 16384 | 50GB   | 20GB   | Centos7.X | Master Node |
 | worker1.lab.example.com | 2    | 8192  | 50GB   | 20GB   | Centos7.X | Worker Node |
 | worker2.lab.example.com | 2    | 8192  | 50GB   | 20GB   | Centos7.x | Worker Node |
 | infra1.lab.example.com  | 2    | 8192  | 50GB   | 20GB   | Centos7.x | Infra Nod   |
+| server.lab.example.com  | 2    | 2048  | 100GB  | -      | Centos7.x | DNS & NFS   |
 
 ```shell
-# sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n master -d lab.example.com -c 6 -r 20480 -v 150G
-# sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n worker1 -d lab.example.com -c 2 -r 8192 -v 50G
-# sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n worker2 -d lab.example.com -c 2 -r 8192 -v 50G
-# sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n infra1 -d lab.example.com -c 2 -r 8192 -v 50G
+sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n master -d lab.example.com -c 4 -r 16384 -v 50G
+sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n worker1 -d lab.example.com -c 2 -r 8192 -v 50G
+sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n worker2 -d lab.example.com -c 2 -r 8192 -v 50G
+sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n infra1 -d lab.example.com -c 2 -r 8192 -v 50G
+sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n server -d lab.example.com -c 2 -r 2048 -v 100G
 
-# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20G
-# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh worker1 vdb 20G
-# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh worker2 vdb 20G
-# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh infra1 vdb 20G
+sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20G
+sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh worker1 vdb 20G
+sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh worker2 vdb 20G
+sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh infra1 vdb 20G
+
+scp /etc/hosts master:/etc/hosts
+scp /etc/hosts worker1:/etc/hosts
+scp /etc/hosts worker2:/etc/hosts
+scp /etc/hosts infra1:/etc/hosts
 ```
 
 References:
@@ -30,54 +37,46 @@ References:
 
 ### Preparing Nodes:
 
-##### Step 1: Set the hostname with respective nodes
+##### Step 1: Use the below command to update the System on all nodes
 
 ```shell
-# hostnamectl set-hostname master.lab.example.com   # In Master Node
-# hostnamectl set-hostname worker1.lab.example.com  # In Worker1 Node
-# hostnamectl set-hostname worker2.lab.example.com  # In Worker2 Node
-# hostnamectl set-hostname infra1.lab.example.com   # In Infra1 Node
-```
-
-##### Step 2: Use the below command to update the System on all nodes
-
-```shell
-# yum update -y
+yum update -y
 ```
 
 Use the below command to compare the kernel on all nodes: 
 
 ```shell
-# echo "Latest Installed Kernel : $(rpm -q kernel --last | head -n 1 | awk '{print $1}')" ; echo "Current Running Kernel  : kernel-$(uname -r)"
+echo "Latest Installed Kernel : $(rpm -q kernel --last | head -n 1 | awk '{print $1}')" ; echo "Current Running Kernel  : kernel-$(uname -r)"
 ```
 
-If you have different kernel in above command output, then you need to reboot all the system. otherwise jump to Step 4.
+If you have different kernel in above command output, then you need to reboot all the system. otherwise jump to Step 2.
 
 ```shell
-# reboot
+reboot
 ```
 
-##### Step 3: Once the systems came back UP/ONLINE, Install the following Packages on all nodes(Excluding Server Node)
+##### Step 2: Once the systems came back UP/ONLINE, Install the following Packages on all nodes(Excluding Server Node)
 
 ```shell
-# yum install -y wget git vim nano nfs-utils net-tools docker-1.13.1 bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct openssl-devel httpd-tools NetworkManager python-cryptography python-devel python-passlib java-1.8.0-openjdk-headless "@Development Tools"
+yum install -y wget git vim nano nfs-utils net-tools docker-1.13.1 bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct openssl-devel httpd-tools NetworkManager python-cryptography python-devel python-passlib java-1.8.0-openjdk-headless "@Development Tools"
 ```
 
-##### Step 4: Configure Ansible Repository and Install on master Node only. 
+##### Step 3: Configure Ansible Repository and Install on master Node only. 
 
 ```shell
-# curl -o ansible.rpm https://releases.ansible.com/ansible/rpm/release/epel-7-x86_64/ansible-2.6.5-1.el7.ans.noarch.rpm
-# yum -y install ansible.rpm pyOpenSSL
+curl -o ansible.rpm https://releases.ansible.com/ansible/rpm/release/epel-7-x86_64/ansible-2.6.5-1.el7.ans.noarch.rpm
+
+yum -y install ansible.rpm pyOpenSSL
 ```
 
-##### Step 5: DNS Server Setup in Server Node
+##### Step 4: DNS Server Setup on server Node
 
 Create DNS Service on Master Node using with [DNS Setup](DNS-Setup.md)
 
-Edit /etc/sysconfig/network-scripts/ifcfg-eth0 file on all nodes
+Edit /etc/sysconfig/network-scripts/ifcfg-eth0 file on server node and workstation
 
 ```shell
-# vim /etc/sysconfig/network-scripts/ifcfg-eth0
+vim /etc/sysconfig/network-scripts/ifcfg-eth0
 TYPE="Ethernet"
 BOOTPROTO="none"
 IPADDR=192.168.122.x			# IP Address of Node
@@ -93,48 +92,50 @@ ONBOOT="yes"
 HWADDR=xx:xx:xx:xx:xx:xx		# MAC Address of eth0 Interface
 ```
 
-##### Step 6: NFS Server Setup on Master Node
+##### Step 5: NFS Server Setup on server Node
 
 Create NFS Service on Master Node using with [NFS Setup](NFS-Setup.md)
 
-##### Step 7: Configuring Docker Storage on all nodes
+##### Step 6: Configuring Docker Storage on all nodes
 
 ```shell
-# cat <<EOF > /etc/sysconfig/docker-storage-setup 
+cat <<EOF > /etc/sysconfig/docker-storage-setup 
 DEVS=/dev/vdb 
 VG=docker-vg 
 EOF
 
-# docker-storage-setup
-# lsblk
+docker-storage-setup
+lsblk
 ```
 
 Reference: 
 
 1. https://docs.okd.io/3.9/install_config/install/host_preparation.html#configuring-docker-storage
 
-##### Step 8:  Start and Enable NetworkManager and Docker Services on all nodes
+##### Step 7:  Start and Enable NetworkManager and Docker Services on all nodes
 
 ```shell
-# systemctl start NetworkManager && systemctl enable NetworkManager && systemctl status NetworkManager
+systemctl start NetworkManager && systemctl enable NetworkManager && systemctl status NetworkManager
 ```
 
 ```shell
-# systemctl start docker && systemctl enable docker && systemctl status docker
+systemctl start docker && systemctl enable docker && systemctl status docker
 ```
 
-##### Step 9: Generate SSH Keys on Master Node and install it on all nodes
+##### Step 8: Generate SSH Keys on Master Node and install it on all nodes
 
 ```shell
-# ssh-keygen -f ~/.ssh/id_rsa -N ''
-# for host in master.lab.example.com worker1.lab.example.com worker2.lab.example.com infra1.lab.example.com ; do ssh-copy-id -i ~/.ssh/id_rsa.pub $host; done
+ssh-keygen -f ~/.ssh/id_rsa -N ''
+
+for host in master.lab.example.com worker1.lab.example.com worker2.lab.example.com infra1.lab.example.com ; do ssh-copy-id -i ~/.ssh/id_rsa.pub $host; done
 ```
 
-##### Step 10: registry-console Fix on all the nodes
+##### Step 9: registry-console Fix on all the nodes
 
 ```shell
-# wget http://mirror.centos.org/centos/7/os/x86_64/Packages/python-rhsm-certificates-1.19.10-1.el7_4.x86_64.rpm
-# rpm2cpio python-rhsm-certificates-1.19.10-1.el7_4.x86_64.rpm | cpio -iv --to-stdout ./etc/rhsm/ca/redhat-uep.pem | tee /etc/rhsm/ca/redhat-uep.pem
+wget http://mirror.centos.org/centos/7/os/x86_64/Packages/python-rhsm-certificates-1.19.10-1.el7_4.x86_64.rpm
+
+rpm2cpio python-rhsm-certificates-1.19.10-1.el7_4.x86_64.rpm | cpio -iv --to-stdout ./etc/rhsm/ca/redhat-uep.pem | tee /etc/rhsm/ca/redhat-uep.pem
 ```
 
 References:
@@ -148,8 +149,9 @@ References:
 ##### Step 1: Clone Openshift-Ansible Git Repo on Master Machine
 
 ```shell
-# git clone https://github.com/openshift/openshift-ansible.git
-# cd openshift-ansible && git fetch && git checkout release-3.9
+git clone https://github.com/openshift/openshift-ansible.git
+
+cd openshift-ansible && git fetch && git checkout release-3.9
 ```
 
 ##### Step 2: Select the Installation method

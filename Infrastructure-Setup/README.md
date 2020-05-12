@@ -20,7 +20,7 @@
 # git clone https://github.com/narenchandrak/Microservice.git ~/Microservice/
 ```
 
-##### Step 6: Generate RSA Key and copy to script.
+##### Step 4: Generate RSA Key and copy to script.
 
 ```shell
 # ssh-keygen -f ~/.ssh/id_rsa -N ''
@@ -30,7 +30,9 @@
 
 Note: Replace with above RSA Key
 
-##### Step 8: Create Instances
+##### Step 5: Create virtual Instances (or) Volume
+
+#### Create New Instance
 
 Example:
 
@@ -38,7 +40,7 @@ Example:
 # sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n master -d example.com -c 2 -r 2048 -v 100G
 ```
 
-### Create New Disk
+#### Create New Disk
 
 Example:
 

@@ -3,7 +3,7 @@
 ##### Step 1: Now Create Your Own Inventory file for Ansible as following on master Node
 
 ```shell
-# vim ~/inventory.ini
+vim ~/inventory.ini
 ```
 
 ```
@@ -19,7 +19,7 @@ master.lab.example.com
 master.lab.example.com
 
 [nodes]
-master.lab.example.com openshift_schedulable=true ansible_connection=local ansible_become=yes
+master.lab.example.com openshift_schedulable=true
 worker1.lab.example.com openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
 worker2.lab.example.com openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
 infra1.lab.example.com openshift_schedulable=true openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
@@ -64,7 +64,7 @@ openshift_hosted_registry_selector='region=infra'
 ##### Step 2: Use the below ansible playbook command to check the prerequisites to deploy OpenShift Cluster on master Node
 
 ```shell
-# ansible-playbook -i ~/inventory.ini playbooks/prerequisites.yml
+ansible-playbook -i ~/inventory.ini playbooks/prerequisites.yml
 ```
 
 
@@ -74,7 +74,7 @@ openshift_hosted_registry_selector='region=infra'
 ##### Step 3: Once prerequisites completed without any error use the below ansible playbook to Deploy OpenShift Cluster on master Node
 
 ```shell
-# ansible-playbook -i ~/inventory.ini playbooks/deploy_cluster.yml
+ansible-playbook -i ~/inventory.ini playbooks/deploy_cluster.yml
 ```
 
 Now you have to wait approx 20-30 Minutes to complete the Installation
@@ -86,12 +86,14 @@ Now you have to wait approx 20-30 Minutes to complete the Installation
 ##### Step 4: Once the Installation is completed, Create a admin user in OpenShift with Password "Redhat@123" from master Node and assign cluster-admin Role to admin user
 
 ```shell
-# htpasswd -c /etc/origin/master/htpasswd admin
+htpasswd -c /etc/origin/master/htpasswd admin
     New password: Redhat@123
     Re-type new password: Redhat@123
-# ls -l /etc/origin/master/htpasswd
-# cat /etc/origin/master/htpasswd
-# vim /etc/origin/master/master-config.yaml
+
+ls -l /etc/origin/master/htpasswd
+cat /etc/origin/master/htpasswd
+
+vim /etc/origin/master/master-config.yaml
       identityProviders:
       - challenge: true
         login: true
@@ -101,17 +103,18 @@ Now you have to wait approx 20-30 Minutes to complete the Installation
           apiVersion: v1
           kind: HTPasswdPasswordIdentityProvider		## changes this line
           file: /etc/origin/master/htpasswd			    ## changes this line
-# systemctl restart origin-master-controllers.service
-# systemctl restart origin-master-api.service
-# oc adm policy add-cluster-role-to-user cluster-admin admin
 
+
+systemctl restart origin-master-controllers.service
+systemctl restart origin-master-api.service
+oc adm policy add-cluster-role-to-user cluster-admin admin
 ```
 
 ##### Step 5: Use the below command to login as admin user on CLI
 
 ```bash
-# oc completion bash >>/etc/bash_completion.d/oc_completion
-# oc login
+oc completion bash >>/etc/bash_completion.d/oc_completion
+oc login
 ```
 
 ```
@@ -122,7 +125,7 @@ Login successful.
 ```
 
 ```shell
-# oc whoami
+oc whoami
 ```
 
 Login GUI  with https://master.lab.example.com:8443
