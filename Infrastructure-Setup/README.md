@@ -32,11 +32,15 @@ Note: Replace with above RSA Key
 
 ##### Step 8: Create Instances
 
+Example:
+
 ```shell
 # sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n master -d example.com -c 2 -r 2048 -v 100G
 ```
 
 ### Create New Disk
+
+Example:
 
 ```shell
 # sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20

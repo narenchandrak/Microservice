@@ -87,7 +87,7 @@ function DELETE_VM() {
 
 function VM_CHECK() {
     LOG "INFO Checking VM already exists"
-    virsh dominfo ${hostname}
+    virsh dominfo ${hostname} 2>/dev/null
     if [[ "$?" -eq 0 ]]; then
         LOG "WARNING ${hostname} VM already exists."
         read -p "Do you want to overwrite ${hostname} [y/N]? " -r
