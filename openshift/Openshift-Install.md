@@ -11,6 +11,18 @@ Create Virtual VM using with following [Virtual Server](../Infrastructure-Setup/
 | worker2.lab.example.com | 2    | 8192  | 50GB   | 20GB   | Centos7.x | Worker Node |
 | infra1.lab.example.com  | 2    | 8192  | 50GB   | 20GB   | Centos7.x | Infra Nod   |
 
+```shell
+# sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n master -d lab.example.com -c 6 -r 20480 -v 150G
+# sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n worker1 -d lab.example.com -c 2 -r 8192 -v 50G
+# sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n worker2 -d lab.example.com -c 2 -r 8192 -v 50G
+# sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n infra1 -d lab.example.com -c 2 -r 8192 -v 50G
+
+# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20
+# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh worker1 vdb 20
+# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh worker2 vdb 20
+# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh infra1 vdb 20
+```
+
 References:
 
 1. https://docs.okd.io/3.9/install_config/install/planning.html
@@ -68,17 +80,17 @@ Edit /etc/sysconfig/network-scripts/ifcfg-eth0 file on all nodes
 # vim /etc/sysconfig/network-scripts/ifcfg-eth0
 TYPE="Ethernet"
 BOOTPROTO="none"
-IPADDR=192.168.122.x
+IPADDR=192.168.122.x			# IP Address of Node
 NETMASK=255.255.255.0
 GATEWAY=192.168.122.1
 DNS1=192.168.122.1
-DNS2=192.168.122.x
+DNS2=192.168.122.x				# IP Address of DNS Server -- Master Node
 DEFROUTE="yes"
 IPV6INIT="no"
 NAME="eth0"
 DEVICE="eth0"
 ONBOOT="yes"
-HWADDR=xx:xx:xx:xx:xx:xx
+HWADDR=xx:xx:xx:xx:xx:xx		# MAC Address of eth0 Interface
 ```
 
 ##### Step 6: NFS Server Setup on Master Node

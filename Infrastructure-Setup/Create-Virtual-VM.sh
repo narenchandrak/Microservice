@@ -1,75 +1,125 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Take one argument from the commandline: VM name
-if ! [ $# -eq 1 ]; then
-    echo "Usage: $0 <node-name>"
-    exit 1
-fi
+function USAGE() {
+cat << EOF
+Usage: $0 [-h HELP] [-o OPERATION] [-n NAME] [-d DOMAIN] [-c CPU] [-r RAM] [-v VOLUMES]
 
-# Check if domain already exists
-virsh dominfo $1 > /dev/null 2>&1
-if [ "$?" -eq 0 ]; then
-    echo -n "[WARNING] $1 already exists.  "
-    read -p "Do you want to overwrite $1 [y/N]? " -r
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo ""
+        -h  HELP        display this help and exit
+        -o  OPERATION   Type of Virtual Operation
+                        create  - Create Virtual VM
+                        delete  - Delete Virtual VM
+        -n NAME         Name of the VMM
+        -d DOMAIN       Domain name for VM
+        -c CPU          No of vCPU for VM
+        -r RAM          Total RAM for VM in MB
+        -v VOLUME       size of the volume
+ Example:
+        $0 -o create -n master -d example.com -c 2 -r 2048 -v 100G
+EOF
+}
+
+function CREAT_VM() {
+
+    LOG "INFO VM Creation Started for ${hostname}"
+    # Start clean
+    rm -rf ${DIR}/${hostname}
+    mkdir -p ${DIR}/${hostname}
+
+    if [[ -f ${IMAGE} ]];then
+        LOG "INFO ${IMAGE} is already exists"
     else
-        echo -e "\nNot overwriting $1. Exiting..."
-        exit 1
+        LOG "INFO ${IMAGE} not exists"
+        mkdir -p ~/Microservice/images
+        pushd ~/Microservice/images > /dev/null
+        LOG "INFO Download Latest centos Images"
+        wget http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2.xz 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+        xz --decompress CentOS-7-x86_64-GenericCloud.qcow2.xz 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+        popd > /dev/null
     fi
-fi
 
-# Directory to store images
-DIR=~/Microservice/images/
+    VM_CHECK
+    VOLUME_CREATION
 
-# Location of cloud image
-IMAGE=$DIR/CentOS-7-x86_64-GenericCloud.qcow2
+    LOG "INFO Installing the domain and adjusting the configuration..."
+    LOG "INFO Installing with the following parameters:"
+    echo "virt-install --import --name ${hostname} --ram $MEM --vcpus $CPUS --disk
+    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network
+    bridge=virbr0,model=virtio --os-type=linux --os-variant=rhel7 --noautoconsole" 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
 
-# Amount of RAM in MB
-MEM=2048
+    virt-install --import --name ${hostname} --ram ${MEM} --vcpus ${CPUS} --disk \
+    ${DISK},format=qcow2,bus=virtio --disk ${CI_ISO},device=cdrom --network \
+    bridge=virbr0,model=virtio --os-type=linux --os-variant=rhel7 --noautoconsole 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
 
-# Number of virtual CPUs
-CPUS=2
+    MAC=$(virsh dumpxml ${hostname} | awk -F\' '/mac address/ {print $2}')
+    while true
+    do
+        IP=$(grep -B1 ${MAC} /var/lib/libvirt/dnsmasq/${BRIDGE}.status | head \
+             -n 1 | awk '{print $2}' | sed -e s/\"//g -e s/,//)
+        if [[ "$IP" = "" ]]
+        then
+            sleep 1
+        else
+            break
+        fi
+    done
 
-# Resize the VM Volume
-SIZE=10G
+    # Eject cdrom
+    LOG "INFO Cleaning up cloud-init..."
+    virsh change-media ${hostname} hda --eject --config 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
 
-# Domain Name
-DOMAIN=example.com
+    # Remove the unnecessary cloud init files
+    rm ${USER_DATA} ${CI_ISO}
 
-# Cloud init files
-USER_DATA=user-data
-META_DATA=meta-data
-CI_ISO="/var/lib/libvirt/images/$1-cidata.iso"
-DISK="/var/lib/libvirt/images/$1.qcow2"
+    LOG "INFO DONE. SSH to ${hostname} using $IP, with  username 'root'."
+    LOG "INFO Adding $IP ${hostname}.$DOMAIN in /etc/hosts"
+    sed -i '/'${hostname}'.'${DOMAIN}'/d' /etc/hosts
+    if [[ $? -eq 0 ]]; then
+        echo "$IP ${hostname}.$DOMAIN ${hostname}" >> /etc/hosts
+        LOG "successfully added value in /etc/hosts"
+    else
+        echo "Failed to $IP value in /etc/hosts. Please add manually in /etc/hosts"
+    fi
+}
 
-# Bridge for VMs (default on centos is virbr0)
-BRIDGE=virbr0
+function DELETE_VM() {
+    VM_CHECK
+}
 
-# Start clean
-rm -rf $DIR/$1
-mkdir -p $DIR/$1
+function VM_CHECK() {
+    LOG "INFO Checking VM already exists"
+    virsh dominfo ${hostname}
+    if [[ "$?" -eq 0 ]]; then
+        LOG "WARNING ${hostname} VM already exists."
+        read -p "Do you want to overwrite ${hostname} [y/N]? " -r
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            LOG "INFO Destroying the ${hostname} VM."
+            virsh destroy ${hostname} 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+            virsh undefine ${hostname} 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+        else
+            LOG "INFO Not overwriting ${hostname} VM. Exiting..."
+            exit 1
+        fi
+    fi
+}
 
-pushd $DIR/$1 > /dev/null
+function VOLUME_CREATION() {
 
-    # Create log file
-    touch $1.log
+    echo "instance-id: ${hostname}; local-hostname: ${hostname}" > ${META_DATA}
 
-    echo "$(date -R) Destroying the $1 domain (if it exists)..."
-
-    # Remove domain with the same name
-    virsh destroy $1 >> $1.log 2>&1
-    virsh undefine $1 >> $1.log 2>&1
+    LOG "INFO Copying template image to $DISK"
+    cp ${IMAGE} ${DISK} 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+    LOG "INFO Resizing $DISK VM Volume to $SIZE"
+    qemu-img resize ${DISK} ${SIZE} 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
 
     # cloud-init config: set hostname, remove cloud-init package,
     # and add ssh-key
-    cat > $USER_DATA << _EOF_
+    cat > ${USER_DATA} << _EOF_
 #cloud-config
 
 # Hostname management
 preserve_hostname: False
-hostname: $1
-fqdn: $1.$DOMAIN
+hostname: ${hostname}
+fqdn: ${hostname}.${DOMAIN}
 
 # Remove cloud-init when finished with it
 runcmd:
@@ -100,58 +150,82 @@ ssh_genkeytypes: ['rsa', 'ecdsa']
 # in cloud.cfg in the template (which is centos for CentOS cloud images)
 ssh_authorized_keys:
   - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKvZaXfROgVvuGqsWNVLOWvhlMeMBiWZ3JwxLUgfUzUl66PXPxH5z1gngG832rIWXbIWWPBdc/xB46zjxDA62ecydZ70e72lTWqytuNBEkotSAw6S2M2VCOAUv/VKsZq3SFenW6Alhn9iVrbjscw/vpLz6nQghktng0uzmXnT5sAw4k1rgG2M71JN+82qAPpelLta/Vc21dYFBWGYfVS9rwcGqPloDtYmFi2Iyz7GVaJPnM2tC4xn1UYssATE0i7kwaLMtJGu9kP6LHIKTxJEkNa9khF9+GtyIZ0dLtuzdBE/LYz8N3dYJ+6CvpBYAMV/Rm00Yp2i2s/+YUua2FgQ9 root@workstation.lab.example.com
-
 _EOF_
 
-    echo "instance-id: $1; local-hostname: $1" > $META_DATA
-
-    echo "$(date -R) Copying template image..."
-    cp $IMAGE $DISK
-    echo "$(date -R) Resizing VM Volume $DISK to $SIZE"
-    qemu-img resize $DISK $SIZE
 
     # Create CD-ROM ISO with cloud-init config
-    echo "$(date -R) Generating ISO for cloud-init..."
-    genisoimage -output $CI_ISO -volid cidata -joliet -r $USER_DATA $META_DATA &>> $1.log
+    LOG "INFO Generating ISO for cloud-init..."
+    genisoimage -output ${CI_ISO} -volid cidata -joliet -r ${USER_DATA} ${META_DATA} 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+}
 
-    echo "$(date -R) Installing the domain and adjusting the configuration..."
-    echo "[INFO] Installing with the following parameters:"
-    echo "virt-install --import --name $1 --ram $MEM --vcpus $CPUS --disk
-    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network
-    bridge=virbr0,model=virtio --os-type=linux --os-variant=rhel7 --noautoconsole"
 
-    virt-install --import --name $1 --ram $MEM --vcpus $CPUS --disk \
-    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network \
-    bridge=virbr0,model=virtio --os-type=linux --os-variant=rhel7 --noautoconsole
+function LOG() {
+    # LOG "INFO some info message"
+    # LOG "DEBUG some debug message"
+    # LOG "WARN some warning message"
+    # LOG "ERROR some really ERROR message"
+    # LOG "FATAL some really fatal message"
+    type_of_msg=$(echo $*|cut -d" " -f1)
+    msg=$(echo "$*"|cut -d" " -f2-)
+    echo "$(date -R) [$type_of_msg] $msg" 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+}
 
-    MAC=$(virsh dumpxml $1 | awk -F\' '/mac address/ {print $2}')
-    while true
-    do
-        IP=$(grep -B1 $MAC /var/lib/libvirt/dnsmasq/$BRIDGE.status | head \
-             -n 1 | awk '{print $2}' | sed -e s/\"//g -e s/,//)
-        if [ "$IP" = "" ]
-        then
-            sleep 1
-        else
-            break
-        fi
-    done
+###
+# Main body of script starts here
+###
 
-    # Eject cdrom
-    echo "$(date -R) Cleaning up cloud-init..."
-    virsh change-media $1 hda --eject --config >> $1.log
+while getopts ":o:n:d:c:r:v:h" OPT; do
+    case "${OPT}" in
+    "o")
+        operation=${OPTARG}
+        ;;
+    "n")
+        hostname=${OPTARG}
+        ;;
+    "d")
+        DOMAIN=${OPTARG}
+        ;;
+    "c")
+        CPUS=${OPTARG}
+        ;;
+    "r")
+        MEM=${OPTARG}
+        ;;
+    "v")
+        SIZE=${OPTARG}
+        ;;
+    "h")
+        USAGE
+        exit 0
+        ;;
+    esac
+done
 
-    # Remove the unnecessary cloud init files
-    rm $USER_DATA $CI_ISO
+# Directory to store images
+DIR=~/Microservice/images/
 
-    echo "$(date -R) DONE. SSH to $1 using $IP, with  username 'root'."
-    echo "Adding $IP $1.$DOMAIN in /etc/hosts"
-    sed -i '/'$1'.'$DOMAIN'/d' /etc/hosts
-    if [ $? -eq 0 ]; then
-        echo "$IP $1.$DOMAIN $1" >> /etc/hosts
-        echo "successfully added value in /etc/hosts"
-    else
-        echo "Failed to $IP value in /etc/hosts. Please add manually in /etc/hosts"
-    fi
+# Location of cloud image
+IMAGE=${DIR}/CentOS-7-x86_64-GenericCloud.qcow2
 
-popd > /dev/null
+# Cloud init files
+USER_DATA=${DIR}/${hostname}/user-data
+META_DATA=${DIR}/${hostname}/meta-data
+CI_ISO="/var/lib/libvirt/images/${hostname}-cidata.iso"
+DISK="/var/lib/libvirt/images/${hostname}.qcow2"
+
+# Bridge for VMs (default on centos is virbr0)
+BRIDGE=virbr0
+
+if ! [[ -f ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log ]]; then
+    touch ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+fi
+
+if [[ ${operation} -eq "create" ]]; then
+    CREAT_VM
+elif [[ ${operation} -eq "delete" ]]; then
+    DELETE_VM
+else
+    LOG "ERROR The following ${OPTARG} operation is not available"
+    USAGE
+    exit 1
+fi
