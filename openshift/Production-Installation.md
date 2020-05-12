@@ -33,6 +33,8 @@ debug_level=4
 ansible_ssh_user=root
 openshift_enable_service_catalog=true
 ansible_service_broker_install=true
+openshift_metrics_install_metrics=true
+openshift_logging_install_logging=true
 
 containerized=false
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
@@ -52,8 +54,7 @@ osm_use_cockpit=true
 
 
 # Login Details paswword Configuration
-openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider'}]
-openshift_master_htpasswd_file='/etc/origin/master/htpasswd'
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
 # put the router on dedicated infra1 node
 openshift_hosted_router_selector='region=infra'
@@ -73,7 +74,33 @@ openshift_hosted_registry_storage_nfs_directory=/exports
 openshift_hosted_registry_storage_nfs_options='*(rw,root_squash)'
 openshift_hosted_registry_storage_volume_name=registry
 openshift_hosted_registry_storage_volume_size=10Gi
+
+openshift_hosted_etcd_storage_kind=nfs
+openshift_hosted_etcd_storage_nfs_options="*(rw,root_squash,sync,no_wdelay)"
+openshift_hosted_etcd_storage_nfs_directory=/exports
+openshift_hosted_etcd_storage_volume_name=etcd-vol2
+openshift_hosted_etcd_storage_access_modes=["ReadWriteOnce"]
+openshift_hosted_etcd_storage_volume_size=1G
+openshift_hosted_etcd_storage_labels={'storage': 'etcd'}
+
+openshift_metrics_storage_kind=nfs
+openshift_metrics_storage_access_modes=['ReadWriteOnce']
+openshift_metrics_storage_nfs_directory=/exports
+openshift_metrics_storage_nfs_options='*(rw,root_squash)'
+openshift_metrics_storage_volume_name=metrics
+openshift_metrics_storage_volume_size=10Gi
+
+openshift_logging_storage_kind=nfs
+openshift_logging_storage_access_modes=['ReadWriteOnce']
+openshift_logging_storage_nfs_directory=/exports
+openshift_logging_storage_nfs_options='*(rw,root_squash)'
+openshift_logging_storage_volume_name=logging
+openshift_logging_storage_volume_size=10Gi
 ```
+
+Reference:
+
+1. https://docs.okd.io/3.9/install_config/install/advanced_install.html
 
 ##### Step 2: Create a admin user in OpenShift with Password "Redhat@123" from master Node
 

@@ -18,6 +18,9 @@ master.lab.example.com
 [etcd]
 master.lab.example.com
 
+[nfs]
+master.lab.example.com
+
 [nodes]
 master.lab.example.com openshift_schedulable=true
 worker1.lab.example.com openshift_schedulable=true openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
@@ -28,7 +31,16 @@ infra1.lab.example.com openshift_schedulable=true openshift_node_labels="{'regio
 debug_level=4
 ansible_ssh_user=root
 openshift_enable_service_catalog=true
-ansible_service_broker_install=flase
+ansible_service_broker_install=true
+
+openshift_enable_unsupported_configurations=True
+openshift_hosted_etcd_storage_kind=nfs
+openshift_hosted_etcd_storage_nfs_options="*(rw,root_squash,sync,no_wdelay)"
+openshift_hosted_etcd_storage_nfs_directory=/opt/osev3-etcd
+openshift_hosted_etcd_storage_volume_name=etcd-vol2
+openshift_hosted_etcd_storage_access_modes=["ReadWriteOnce"]
+openshift_hosted_etcd_storage_volume_size=1G
+openshift_hosted_etcd_storage_labels={'storage': 'etcd'}
 
 containerized=false
 os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'

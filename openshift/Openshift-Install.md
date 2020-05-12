@@ -6,18 +6,17 @@ Create Virtual VM using with following [Virtual Server](../Infrastructure-Setup/
 
 | Host Name               | CPU  | RAM   | Disk-1 | Disk-2 | OS        | Role        |
 | ----------------------- | ---- | ----- | ------ | ------ | --------- | ----------- |
-| master.lab.example.com  | 4    | 16384 | 50GB   | 20GB   | Centos7.X | Master Node |
+| master.lab.example.com  | 6    | 20480 | 200GB  | 20GB   | Centos7.X | Master Node |
 | worker1.lab.example.com | 2    | 8192  | 50GB   | 20GB   | Centos7.X | Worker Node |
 | worker2.lab.example.com | 2    | 8192  | 50GB   | 20GB   | Centos7.x | Worker Node |
 | infra1.lab.example.com  | 2    | 8192  | 50GB   | 20GB   | Centos7.x | Infra Nod   |
-| server.lab.example.com  | 2    | 2048  | 100GB  | -      | Centos7.x | DNS & NFS   |
 
 ```shell
-sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n master -d lab.example.com -c 4 -r 16384 -v 50G
+sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n master -d lab.example.com -c 6 -r 20480 -v 200G
 sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n worker1 -d lab.example.com -c 2 -r 8192 -v 50G
 sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n worker2 -d lab.example.com -c 2 -r 8192 -v 50G
 sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n infra1 -d lab.example.com -c 2 -r 8192 -v 50G
-sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n server -d lab.example.com -c 2 -r 2048 -v 100G
+
 
 sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20G
 sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh worker1 vdb 20G
@@ -28,6 +27,29 @@ scp /etc/hosts master:/etc/hosts
 scp /etc/hosts worker1:/etc/hosts
 scp /etc/hosts worker2:/etc/hosts
 scp /etc/hosts infra1:/etc/hosts
+```
+
+##### DNS Server Setup on server Node
+
+Create DNS Service on Master Node using with [DNS Setup](DNS-Setup.md)
+
+Edit /etc/sysconfig/network-scripts/ifcfg-eth0 file on workstation
+
+```shell
+vim /etc/sysconfig/network-scripts/ifcfg-eth0
+TYPE="Ethernet"
+BOOTPROTO="none"
+IPADDR=192.168.122.x			# IP Address of Node
+NETMASK=255.255.255.0
+GATEWAY=192.168.122.1
+DNS1=192.168.122.1
+DNS2=192.168.122.x				# IP Address of DNS Server -- Master Node
+DEFROUTE="yes"
+IPV6INIT="no"
+NAME="eth0"
+DEVICE="eth0"
+ONBOOT="yes"
+HWADDR=xx:xx:xx:xx:xx:xx		# MAC Address of eth0 Interface
 ```
 
 References:
@@ -68,33 +90,6 @@ curl -o ansible.rpm https://releases.ansible.com/ansible/rpm/release/epel-7-x86_
 
 yum -y install ansible.rpm pyOpenSSL
 ```
-
-##### Step 4: DNS Server Setup on server Node
-
-Create DNS Service on Master Node using with [DNS Setup](DNS-Setup.md)
-
-Edit /etc/sysconfig/network-scripts/ifcfg-eth0 file on server node and workstation
-
-```shell
-vim /etc/sysconfig/network-scripts/ifcfg-eth0
-TYPE="Ethernet"
-BOOTPROTO="none"
-IPADDR=192.168.122.x			# IP Address of Node
-NETMASK=255.255.255.0
-GATEWAY=192.168.122.1
-DNS1=192.168.122.1
-DNS2=192.168.122.x				# IP Address of DNS Server -- Master Node
-DEFROUTE="yes"
-IPV6INIT="no"
-NAME="eth0"
-DEVICE="eth0"
-ONBOOT="yes"
-HWADDR=xx:xx:xx:xx:xx:xx		# MAC Address of eth0 Interface
-```
-
-##### Step 5: NFS Server Setup on server Node
-
-Create NFS Service on Master Node using with [NFS Setup](NFS-Setup.md)
 
 ##### Step 6: Configuring Docker Storage on all nodes
 
