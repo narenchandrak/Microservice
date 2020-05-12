@@ -7,7 +7,7 @@ oc get projects
 oc project default
 ```
 
-![](C:\Users\Naren Chandra\OneDrive\Naren_Chandra_R&D\microservices\GitHub\Microservice\openshift\PV-Registry\1.jpg)
+![](PV-Registry/1.jpg)
 
 ##### step 2: Get the list of Pods
 
@@ -15,7 +15,7 @@ oc project default
 oc get pods
 ```
 
-<img src="C:\Users\Naren Chandra\OneDrive\Naren_Chandra_R&amp;D\microservices\GitHub\Microservice\openshift\PV-Registry\2.jpg" style="zoom:150%;" />
+<img src="PV-Registry/2.jpg" style="zoom:150%;" />
 
 ##### Step 3: verify the registry Pod have persistent volume or not
 
@@ -24,7 +24,7 @@ oc describe pod docker-registry-1-zrt9t | grep -A 2 'Volumes'
 oc set volume pod docker-registry-1-zrt9t
 ```
 
-![](C:\Users\Naren Chandra\OneDrive\Naren_Chandra_R&D\microservices\GitHub\Microservice\openshift\PV-Registry\3.jpg)
+![](PV-Registry/3.jpg)
 
 ### Configure NFS Server to share persistent Storage for registry Pod
 
@@ -69,14 +69,14 @@ vim /etc/hosts
 192.168.122.x nfs.lab.example.com nfs
 ```
 
-![](C:\Users\Naren Chandra\OneDrive\Naren_Chandra_R&D\microservices\GitHub\Microservice\openshift\PV-Registry\4.jpg)
+![](PV-Registry/4.jpg)
 
 ```
 showmount -e nfs.lab.example.com
 oc get dc
 ```
 
-<img src="C:\Users\Naren Chandra\OneDrive\Naren_Chandra_R&amp;D\microservices\GitHub\Microservice\openshift\PV-Registry\5.jpg" style="zoom:150%;" />
+<img src="PV-Registry/5.jpg" style="zoom:150%;" />
 
 ##### Step 5: Create a YAML file to configure persistent volume on master node
 
@@ -108,7 +108,7 @@ oc create -f registry-volume.yaml
 oc get pv
 ```
 
-![](C:\Users\Naren Chandra\OneDrive\Naren_Chandra_R&D\microservices\GitHub\Microservice\openshift\PV-Registry\6.jpg)
+![](PV-Registry/6.jpg)
 
 ##### Step 6: Claim the persistent volume for registry Pod
 
@@ -123,14 +123,14 @@ oc get pv
 oc get pods
 ```
 
-![](C:\Users\Naren Chandra\OneDrive\Naren_Chandra_R&D\microservices\GitHub\Microservice\openshift\PV-Registry\7.jpg)
+![](PV-Registry/7.jpg)
 
 ```shell
 oc get dc
 oc describe pod docker-registry-2-4rt86 | grep -A 8 'Volumes'
 ```
 
-![](C:\Users\Naren Chandra\OneDrive\Naren_Chandra_R&D\microservices\GitHub\Microservice\openshift\PV-Registry\8.jpg)
+![](PV-Registry/8.jpg)
 
 ##### Step 7: Verify that the registry is using the NFS share to save container images.
 
@@ -172,7 +172,7 @@ Login to Master Node
 oc get pods -n registry-storage-lab -o wide
 ```
 
-![](C:\Users\Naren Chandra\OneDrive\Naren_Chandra_R&D\microservices\GitHub\Microservice\openshift\PV-Registry\9.jpg)
+![](PV-Registry/9.jpg)
 
 Now go back to NFS Server and check the share for registry Images 
 
@@ -181,4 +181,4 @@ ls -h /exports/registry/
 ls -l /exports/registry/
 ```
 
-![](C:\Users\Naren Chandra\OneDrive\Naren_Chandra_R&D\microservices\GitHub\Microservice\openshift\PV-Registry\10.jpg)
+![](PV-Registry/10.jpg)
