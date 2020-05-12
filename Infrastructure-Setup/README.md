@@ -43,5 +43,5 @@ Example:
 Example:
 
 ```shell
-# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20
+# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20G
 ```

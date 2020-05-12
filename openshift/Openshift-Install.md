@@ -17,10 +17,10 @@ Create Virtual VM using with following [Virtual Server](../Infrastructure-Setup/
 # sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n worker2 -d lab.example.com -c 2 -r 8192 -v 50G
 # sh ~/Microservice/Infrastructure-Setup/Create-Virtual-VM.sh -o create -n infra1 -d lab.example.com -c 2 -r 8192 -v 50G
 
-# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20
-# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh worker1 vdb 20
-# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh worker2 vdb 20
-# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh infra1 vdb 20
+# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh master vdb 20G
+# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh worker1 vdb 20G
+# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh worker2 vdb 20G
+# sh ~/Microservice/Infrastructure-Setup/Create-New-Disk.sh infra1 vdb 20G
 ```
 
 References:
