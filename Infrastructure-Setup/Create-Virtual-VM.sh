@@ -95,6 +95,7 @@ function VM_CHECK() {
             LOG "INFO Destroying the ${hostname} VM."
             virsh destroy ${hostname} 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
             virsh undefine ${hostname} 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+            rm -rf /var/lib/libvirt/images/${hostname}-vd* 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
         else
             LOG "INFO Not overwriting ${hostname} VM. Exiting..."
             exit 1
