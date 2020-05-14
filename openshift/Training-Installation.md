@@ -19,7 +19,7 @@ master.lab.example.com
 master.lab.example.com
 
 [nfs]
-master.lab.example.com
+nfs.lab.example.com
 
 [nodes]
 master.lab.example.com openshift_schedulable=true

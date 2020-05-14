@@ -18,7 +18,7 @@ vim /etc/named.conf
 
 ```
 #do the following changes:
-listen-on port 53 { 127.0.0.1; 192.168.122.11; };
+listen-on port 53 { 127.0.0.1; 192.168.122.15; };
 allow-query     { any };
 
 # Added this line before "include "/etc/named.rfc1912.zones";"
@@ -118,4 +118,3 @@ named-checkconf /etc/named.conf
 named-checkzone lab.example.com /var/named/forward.lab.example.com
 named-checkzone lab.example.com /var/named/reverse.lab.example.com
 ```
-

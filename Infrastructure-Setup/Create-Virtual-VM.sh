@@ -2,7 +2,7 @@
 
 function USAGE() {
 cat << EOF
-Usage: $0 [-h HELP] [-o OPERATION] [-n NAME] [-d DOMAIN] [-c CPU] [-r RAM] [-v VOLUMES]
+Usage: $0 [-h HELP] [-o OPERATION] [-n NAME] [-d DOMAIN] [-c CPU] [-r RAM] [-v No of Volumes] [-a size of volume1] [-b size of volume2]
 
         -h  HELP        display this help and exit
         -o  OPERATION   Type of Virtual Operation
@@ -12,9 +12,12 @@ Usage: $0 [-h HELP] [-o OPERATION] [-n NAME] [-d DOMAIN] [-c CPU] [-r RAM] [-v V
         -d DOMAIN       Domain name for VM
         -c CPU          No of vCPU for VM
         -r RAM          Total RAM for VM in MB
-        -v VOLUME       size of the volume
+        -v VOLUME       No of the volumes
+        -a SIZE1        size of volume1 - vda | Size value in GB
+        -b SIZE2        size of volume2 - vdb | Size value in GB
  Example:
-        $0 -o create -n master -d example.com -c 2 -r 2048 -v 100G
+        $0 -o create -n master -d example.com -c 2 -r 2048 -v 2 -a 100 -b 20
+        $0 -o create -n master -d example.com -c 2 -r 2048 -v 1 -a 100
 EOF
 }
 
@@ -42,13 +45,27 @@ function CREAT_VM() {
 
     LOG "INFO Installing the domain and adjusting the configuration..."
     LOG "INFO Installing with the following parameters:"
-    echo "virt-install --import --name ${hostname} --ram $MEM --vcpus $CPUS --disk
-    $DISK,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network
-    bridge=virbr0,model=virtio --os-type=linux --os-variant=rhel7 --noautoconsole" 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+    if [[ ${volumes} == 1 ]]; then
+        echo "virt-install --import --name ${hostname} --ram $MEM --vcpus $CPUS --disk
+        $DISK1,format=qcow2,bus=virtio --disk $CI_ISO,device=cdrom --network
+        bridge=${BRIDGE},model=virtio --os-type=linux --os-variant=rhel7 --noautoconsole" 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
 
-    virt-install --import --name ${hostname} --ram ${MEM} --vcpus ${CPUS} --disk \
-    ${DISK},format=qcow2,bus=virtio --disk ${CI_ISO},device=cdrom --network \
-    bridge=virbr0,model=virtio --os-type=linux --os-variant=rhel7 --noautoconsole 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+        virt-install --import --name ${hostname} --ram ${MEM} --vcpus ${CPUS} --disk \
+        ${DISK1},format=qcow2,bus=virtio --disk ${CI_ISO},device=cdrom --network \
+        bridge=${BRIDGE},model=virtio --os-type=linux --os-variant=rhel7 --noautoconsole 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+    elif [[ ${volumes} == 2 ]] ; then
+        echo "virt-install --import --name ${hostname} --ram $MEM --vcpus $CPUS --disk
+        $DISK1,format=qcow2,bus=virtio --disk $DISK2,format=qcow2,bus=virtio,size=${SIZE2} --disk $CI_ISO,device=cdrom --network
+        bridge=${BRIDGE},model=virtio --os-type=linux --os-variant=rhel7 --noautoconsole" 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+
+        virt-install --import --name ${hostname} --ram ${MEM} --vcpus ${CPUS} --disk \
+        ${DISK1},format=qcow2,bus=virtio --disk ${DISK2},format=qcow2,bus=virtio,size=${SIZE2} --disk ${CI_ISO},device=cdrom --network \
+        bridge=${BRIDGE},model=virtio --os-type=linux --os-variant=rhel7 --noautoconsole 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+    else
+        USAGE
+        exit 1;
+    fi
+
 
     MAC=$(virsh dumpxml ${hostname} | awk -F\' '/mac address/ {print $2}')
     while true
@@ -107,10 +124,10 @@ function VOLUME_CREATION() {
 
     echo "instance-id: ${hostname}; local-hostname: ${hostname}" > ${META_DATA}
 
-    LOG "INFO Copying template image to $DISK"
-    cp ${IMAGE} ${DISK} 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
-    LOG "INFO Resizing $DISK VM Volume to $SIZE"
-    qemu-img resize ${DISK} ${SIZE} 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+    LOG "INFO Copying template image to $DISK1"
+    cp ${IMAGE} ${DISK1} 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
+    LOG "INFO Resizing $DISK1 VM Volume to ${SIZE1} GB"
+    qemu-img resize ${DISK1} ${SIZE1}G 2>&1 | tee -a ~/Microservice/Infrastructure-Setup/Virtual_Infrastructure.log
 
     # cloud-init config: set hostname, remove cloud-init package,
     # and add ssh-key
@@ -175,7 +192,7 @@ function LOG() {
 # Main body of script starts here
 ###
 
-while getopts ":o:n:d:c:r:v:h" OPT; do
+while getopts ":o:n:d:c:r:v:a:b:h" OPT; do
     case "${OPT}" in
     "o")
         operation=${OPTARG}
@@ -193,7 +210,13 @@ while getopts ":o:n:d:c:r:v:h" OPT; do
         MEM=${OPTARG}
         ;;
     "v")
-        SIZE=${OPTARG}
+        volumes=${OPTARG}
+        ;;
+    "a")
+        SIZE1=${OPTARG}
+        ;;
+    "b")
+        SIZE2=${OPTARG}
         ;;
     "h")
         USAGE
@@ -212,7 +235,8 @@ IMAGE=${DIR}/CentOS-7-x86_64-GenericCloud.qcow2
 USER_DATA=${DIR}/${hostname}/user-data
 META_DATA=${DIR}/${hostname}/meta-data
 CI_ISO="/var/lib/libvirt/images/${hostname}-cidata.iso"
-DISK="/var/lib/libvirt/images/${hostname}.qcow2"
+DISK1="/var/lib/libvirt/images/${hostname}.qcow2"
+DISK2="/var/lib/libvirt/images/${hostname}-vdb.qcow2"
 
 # Bridge for VMs (default on centos is virbr0)
 BRIDGE=virbr0

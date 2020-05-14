@@ -20,7 +20,7 @@ master.lab.example.com
 master.lab.example.com
 
 [nfs]
-master.lab.example.com
+nfs.lab.example.com
 
 [nodes]
 master.lab.example.com openshift_schedulable=true
@@ -51,6 +51,9 @@ openshift_image_tag=v3.9.0
 openshift_service_catalog_image_version=v3.9.0
 template_service_broker_image_version=v3.9.0
 osm_use_cockpit=true
+openshift_cockpit_deployer_prefix='registry.access.redhat.com/openshift3/'
+openshift_cockpit_deployer_basename='registry-console'
+openshift_cockpit_deployer_version='v3.9'
 
 
 # Login Details paswword Configuration
