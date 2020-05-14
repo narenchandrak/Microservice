@@ -35,9 +35,9 @@ scp /etc/hosts infra1:/etc/hosts
 scp /etc/hosts server:/etc/hosts
 ```
 
-##### DNS Server Setup on workstation Node
+##### DNS Server Setup on Server Node
 
-Create DNS Service on workstation Node using with [DNS Setup](DNS-Setup.md)
+Create DNS Service on Server Node using with [DNS Setup](DNS-Setup.md)
 
 **References:**
 

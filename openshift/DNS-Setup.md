@@ -48,7 +48,7 @@ $TTL 86400
         86400       ;Minimum TTL
 )
 
-; name servers - NS records (Pointing to the Master Node hostname A record below)
+; name servers - NS records (Pointing to the server Node hostname A record below)
 @       IN  NS          server.lab.example.com.
 
 master                 IN  A   192.168.122.11
