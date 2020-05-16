@@ -141,3 +141,7 @@ cd openshift-ansible && git fetch && git checkout release-3.9
 |                    Training                    |                     Production                     |
 | :--------------------------------------------: | :------------------------------------------------: |
 | [Openshift Training](Training-Installation.md) | [Openshift Production](Production-Installation.md) |
+
+References:
+
+1. https://docs.openshift.com/container-platform/3.9/install_config/install/advanced_install.html
