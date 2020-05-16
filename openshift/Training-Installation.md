@@ -11,6 +11,7 @@ vim ~/inventory.ini
 masters
 nodes
 etcd
+nfs
 
 [masters]
 master.lab.example.com
@@ -19,7 +20,7 @@ master.lab.example.com
 master.lab.example.com
 
 [nfs]
-nfs.lab.example.com
+master.lab.example.com
 
 [nodes]
 master.lab.example.com openshift_schedulable=true
