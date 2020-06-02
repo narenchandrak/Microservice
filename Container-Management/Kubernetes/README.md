@@ -13,7 +13,7 @@ There are also [slides]().
 
 Kubernetes is all about applications and in this section you will utilize the Kubernetes API to deploy, manage, and upgrade applications. In this part of the workshop you will use an example application called "app" to complete the labs.
 
-* [Workshop Setup](../../Virtual-Instance/README.md)
+* [Workshop Setup](kubernetes-cluster/README.md)
 * [Kubernetes Cluster](../../kubernetes-cluster/README.md)
 * [Kubernetes Object](labs/Kubernetes-Object.md)
 * [Kubernetes Namespaces](labs/Kubernetes-Namespaces.md)

@@ -2,5 +2,5 @@
 master.example.com
 
 [slave]
-slave1.example.com
-slave2.example.com
+worker1.example.com
+worker2.example.com
