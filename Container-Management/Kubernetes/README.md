@@ -5,7 +5,7 @@ In this workshop you will learn how to:
 * Provision a basic Kubernetes cluster from the ground up using Ansible
 * Deploy and manage Docker containers using kubectl
 
-Kubernetes Version: v1.2.2
+Kubernetes Version: v1.18.3
 
 There are also [slides]().
 
@@ -13,21 +13,20 @@ There are also [slides]().
 
 Kubernetes is all about applications and in this section you will utilize the Kubernetes API to deploy, manage, and upgrade applications. In this part of the workshop you will use an example application called "app" to complete the labs.
 
-* [Workshop Setup](kubernetes-cluster/README.md)
-* [Kubernetes Cluster](../../kubernetes-cluster/README.md)
-* [Kubernetes Object](labs/Kubernetes-Object.md)
-* [Kubernetes Namespaces](labs/Kubernetes-Namespaces.md)
-* [Kubernetes Dashboard](../kubernetes-dashboard/README.md)
-* [Containerizing your application](labs/containerizing-your-application.md)
-* [Creating and managing pods](labs/creating-and-managing-pods.md)
-* [Monitoring and health checks](labs/monitoring-and-health-checks.md)
-* [Managing application configurations and secrets](labs/managing-application-configurations-and-secrets.md)
-* [Creating and managing services](labs/creating-and-managing-services.md)
-* [Creating and managing deployments](labs/creating-and-managing-deployments.md)
-* [Rolling out updates](labs/rolling-out-updates.md)
-* [Resource Quotas](labs/Resource-Quotas.md)
-* [Pod Security Policies](labs/Pod-Security-Policies.md)
-* [Helm install](../helm/helm-install/README.md)
+* [Kubernetes Cluster](kubernetes-cluster/README.md)
+* [Kubernetes Object](kubernetes-lab/kubernetes/labs/Kubernetes-Object.md)
+* [Kubernetes Namespaces](kubernetes-lab/kubernetes/labs/Kubernetes-Namespaces.md)
+* [Kubernetes Dashboard](kubernetes-lab/kubernetes-dashboard/README.md)
+* [Containerizing your application](kubernetes-lab/kubernetes/labs/containerizing-your-application.md)
+* [Creating and managing pods](kubernetes-lab/kubernetes/labs/creating-and-managing-pods.md)
+* [Monitoring and health checks](kubernetes-lab/kubernetes/labs/monitoring-and-health-checks.md)
+* [Managing application configurations and secrets](kubernetes-lab/kubernetes/labs/managing-application-configurations-and-secrets.md)
+* [Creating and managing services](kubernetes-lab/kubernetes/labs/creating-and-managing-services.md)
+* [Creating and managing deployments](kubernetes-lab/kubernetes/labs/creating-and-managing-deployments.md)
+* [Rolling out updates](kubernetes-lab/kubernetes/labs/rolling-out-updates.md)
+* [Resource Quotas](kubernetes-lab/kubernetes/labs/Resource-Quotas.md)
+* [Pod Security Policies](kubernetes-lab/kubernetes/labs/Pod-Security-Policies.md)
+* [Helm install](kubernetes-lab/helm/helm-install/README.md)
 
 ## Lab Docker images
 
