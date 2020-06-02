@@ -4,7 +4,7 @@ Kubernetes Dashboard is a general purpose, web-based UI for Kubernetes clusters.
 
 Installation:
 
-Step 1 - Create certificate
+Step 1 - Create self-sign certificate 
 
 openssl can manually generate certificates for your cluster.
 
@@ -100,8 +100,8 @@ Under Deployment section, add arguments to pod definition, it should look as fol
 ```
       containers:
       - args:
-        - --tls-cert-file=/tls.crt
-        - --tls-key-file=/tls.key
+        - --tls-cert-file=~/certs/dashboard.crt
+        - --tls-key-file=~/certs/dashboard.key
 ```
 
 Creating a ClusterRoleBinding and Service Account
@@ -124,7 +124,7 @@ Step 5 - Check port on which Dashboard was exposed:
 
 Step 6 - Get Service Account Token and Login
 
-    kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
+    kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
 
 
 Update:
