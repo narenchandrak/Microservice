@@ -31,7 +31,8 @@ Step 3 - Check port on which Dashboard was exposed:
 Step 4 - Get Service Account Token and Login
 
     kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
-
+    
+    https://<Node Port>:<Port Exposed>
 
 Update:
 
