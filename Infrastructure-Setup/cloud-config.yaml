@@ -2,8 +2,9 @@
 
 # Hostname management
 hostname: master1
-fqdn: master1.example.com
 
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCtqFZmkM5IHjG/TnlCU6Srmw0cdspOhuA4MiOQ40zZYnrKm1A88ObRm+aLLwVAPEx5Oy5S1l2mFd5j1b4VqfXZwjp3xeU400OgCseM3JIsELl9FcQMxjVpqhyLCu7sD8ev+sBGXvJq0t1kgWHdjNGqDer9G87Es2ucVMDbcAIhgYBM5k5WDMqzrcF/yzkrc1E4Bv9uHgFQO75BvMrZ+wZm2+4ay/jpJptLCogzxkSE2n5QS2JL21SkbC2x6QLLzTC9Q4y4dLu0OOKoGRC/CildwLYO5FKXQ/r+ISch5a4ps1ktvCx26O47iZ2Ktc9/KTfYBeBnPUug0l5VEHGx4q4p NarenChandra@DESKTOP-GB5PN31
 rancher:
   console: centos
   network:
@@ -16,21 +17,6 @@ rancher:
     #http_proxy: https://myproxy.example.com
     #https_proxy: https://myproxy.example.com
     #no_proxy: localhost,127.0.0.1
-
-manage_etc_hosts: "localhost"
-
-# Configure where output will go
-output:
-  all: ">> /var/log/cloud-init.log"
-  
-  
-#added
-users:
-  - name: "admin"
-    passwd: "$1$qgY9MXvp$5E1L2INgD7zTGfpp.AhYb1"
-    groups:
-      - "sudo"
-      - "docker"
 
 write_files:
   - path: "/etc/resolv.conf"
