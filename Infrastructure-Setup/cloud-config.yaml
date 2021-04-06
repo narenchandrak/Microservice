@@ -1,7 +1,7 @@
 #cloud-config
 
 # Hostname management
-hostname: master1
+hostname: master1.example.com
 
 ssh_authorized_keys:
   - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCtqFZmkM5IHjG/TnlCU6Srmw0cdspOhuA4MiOQ40zZYnrKm1A88ObRm+aLLwVAPEx5Oy5S1l2mFd5j1b4VqfXZwjp3xeU400OgCseM3JIsELl9FcQMxjVpqhyLCu7sD8ev+sBGXvJq0t1kgWHdjNGqDer9G87Es2ucVMDbcAIhgYBM5k5WDMqzrcF/yzkrc1E4Bv9uHgFQO75BvMrZ+wZm2+4ay/jpJptLCogzxkSE2n5QS2JL21SkbC2x6QLLzTC9Q4y4dLu0OOKoGRC/CildwLYO5FKXQ/r+ISch5a4ps1ktvCx26O47iZ2Ktc9/KTfYBeBnPUug0l5VEHGx4q4p NarenChandra@DESKTOP-GB5PN31
@@ -11,19 +11,17 @@ rancher:
     interfaces:
       eth1:
         address: 192.168.193.150/24
-        gateway: 192.168.193.1
+        gateway: 192.168.193.2
         mtu: 1500
         dhcp: false
+    dns:
+      nameservers:
+        - 8.8.8.8 
     #http_proxy: https://myproxy.example.com
     #https_proxy: https://myproxy.example.com
     #no_proxy: localhost,127.0.0.1
 
 write_files:
-  - path: "/etc/resolv.conf"
-    permissions: "0644"
-    owner: "root"
-    content: |
-      nameserver 8.8.8.8
   - path: "/etc/motd"
     permissions: "0644"
     owner: "root"
