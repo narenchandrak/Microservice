@@ -8,12 +8,6 @@ ssh_authorized_keys:
 rancher:
   console: centos
   network:
-    interfaces:
-      eth1:
-        address: 192.168.193.150/24
-        gateway: 192.168.193.2
-        mtu: 1500
-        dhcp: false
     dns:
       nameservers:
         - 8.8.8.8 
