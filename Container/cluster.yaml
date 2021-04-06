@@ -1,25 +1,32 @@
 nodes:
-    - address: 1.1.1.1
-      user: ubuntu
+    - address: 192.168.193.140
+      user: rancher
       role:
         - controlplane
         - etcd
-      ssh_key_path: /home/user/.ssh/id_rsa
-      port: 2222
-    - address: 2.2.2.2
-      user: ubuntu
-      role:
         - worker
-      ssh_key: |-
-        -----BEGIN RSA PRIVATE KEY-----
-
-        -----END RSA PRIVATE KEY-----
-    - address: example.com
-      user: ubuntu
+      ssh_key_path: /home/rancher/.ssh/id_rsa
+      port: 22
+      labels:
+        app: ingress
+    - address: 192.168.193.142
+      user: rancher
       role:
+        - controlplane
+        - etcd
         - worker
-      hostname_override: node3
-      internal_address: 192.168.1.6
+      ssh_key_path: /home/rancher/.ssh/id_rsa
+      port: 22
+      labels:
+        app: ingress
+    - address: 192.168.193.143
+      user: rancher
+      role:
+        - controlplane
+        - etcd
+        - worker
+      ssh_key_path: /home/rancher/.ssh/id_rsa
+      port: 22
       labels:
         app: ingress
 
@@ -29,7 +36,7 @@ ignore_docker_version: false
 
 # Cluster level SSH private key
 # Used if no ssh information is set for the node
-ssh_key_path: ~/.ssh/test
+ssh_key_path: /home/rancher/.ssh/id_rsa
 
 # Enable use of SSH agent to use SSH private keys with passphrase
 # This requires the environment `SSH_AUTH_SOCK` configured pointing
@@ -41,18 +48,18 @@ ssh_agent_auth: true
 # or set it to `docker.io`
 # is_default set to `true` will override the system default
 # registry set in the global settings
-private_registries:
-     - url: registry.com
-       user: Username
-       password: password
-       is_default: true
+#private_registries:
+#     - url: registry.com
+#       user: Username
+#       password: password
+#       is_default: true
 
 # Bastion/Jump host configuration
-bastion_host:
-    address: x.x.x.x
-    user: ubuntu
-    port: 22
-    ssh_key_path: /home/user/.ssh/bastion_rsa
+#bastion_host:
+#    address: x.x.x.x
+#    user: ubuntu
+#    port: 22
+#    ssh_key_path: /home/user/.ssh/bastion_rsa
 # or
 #   ssh_key: |-
 #     -----BEGIN RSA PRIVATE KEY-----
@@ -60,7 +67,7 @@ bastion_host:
 #     -----END RSA PRIVATE KEY-----
 
 # Set the name of the Kubernetes cluster  
-cluster_name: mycluster
+cluster_name: upstream
 
 
 # The Kubernetes version used. The default versions of Kubernetes
@@ -77,7 +84,7 @@ cluster_name: mycluster
 # In case the kubernetes_version and kubernetes image in
 # system_images are defined, the system_images configuration
 # will take precedence over kubernetes_version.
-kubernetes_version: v1.10.3-rancher2
+kubernetes_version: v1.19.9
 
 # System Images are defaulted to a tag that is mapped to a specific
 # Kubernetes Version and not required in a cluster.yml. 
@@ -91,18 +98,18 @@ kubernetes_version: v1.10.3-rancher2
 # located here:
 # https://github.com/rancher/kontainer-driver-metadata/blob/master/rke/k8s_rke_system_images.go
 #
-system_images:
-    kubernetes: rancher/hyperkube:v1.10.3-rancher2
-    etcd: rancher/coreos-etcd:v3.1.12
-    alpine: rancher/rke-tools:v0.1.9
-    nginx_proxy: rancher/rke-tools:v0.1.9
-    cert_downloader: rancher/rke-tools:v0.1.9
-    kubernetes_services_sidecar: rancher/rke-tools:v0.1.9
-    kubedns: rancher/k8s-dns-kube-dns-amd64:1.14.8
-    dnsmasq: rancher/k8s-dns-dnsmasq-nanny-amd64:1.14.8
-    kubedns_sidecar: rancher/k8s-dns-sidecar-amd64:1.14.8
-    kubedns_autoscaler: rancher/cluster-proportional-autoscaler-amd64:1.0.0
-    pod_infra_container: rancher/pause-amd64:3.1
+#system_images:
+#    kubernetes: rancher/hyperkube:v1.10.3-rancher2
+#    etcd: rancher/coreos-etcd:v3.1.12
+#    alpine: rancher/rke-tools:v0.1.9
+#    nginx_proxy: rancher/rke-tools:v0.1.9
+#    cert_downloader: rancher/rke-tools:v0.1.9
+#    kubernetes_services_sidecar: rancher/rke-tools:v0.1.9
+#    kubedns: rancher/k8s-dns-kube-dns-amd64:1.14.8
+#    dnsmasq: rancher/k8s-dns-dnsmasq-nanny-amd64:1.14.8
+#    kubedns_sidecar: rancher/k8s-dns-sidecar-amd64:1.14.8
+#    kubedns_autoscaler: rancher/cluster-proportional-autoscaler-amd64:1.0.0
+#    pod_infra_container: rancher/pause-amd64:3.1
 
 services:
     etcd:
@@ -173,9 +180,9 @@ services:
 # control plane servers.
 authentication:
     strategy: x509
-    sans:
-      - "10.18.160.10"
-      - "my-loadbalancer-1234567890.us-west-2.elb.amazonaws.com"
+    #sans:
+    #  - "10.18.160.10"
+    #  - "my-loadbalancer-1234567890.us-west-2.elb.amazonaws.com"
 
 # Kubernetes Authorization mode
 # Use `mode: rbac` to enable RBAC
@@ -185,8 +192,8 @@ authorization:
 
 # If you want to set a Kubernetes cloud provider, you specify
 # the name and configuration
-cloud_provider:
-    name: aws
+#cloud_provider:
+#    name: aws
 
 # Add-ons are deployed using kubernetes jobs. RKE will give
 # up on trying to get the job status after this timeout in seconds..
@@ -194,7 +201,7 @@ addon_job_timeout: 30
 
 # Specify network plugin-in (canal, calico, flannel, weave, or none)
 network:
-    plugin: canal
+    plugin: calico
 
 # Specify DNS provider (coredns or kube-dns)
 dns:
@@ -208,22 +215,4 @@ ingress:
     node_selector:
       app: ingress
       
-# All add-on manifests MUST specify a namespace
-addons: |-
-    ---
-    apiVersion: v1
-    kind: Pod
-    metadata:
-      name: my-nginx
-      namespace: default
-    spec:
-      containers:
-      - name: my-nginx
-        image: nginx
-        ports:
-        - containerPort: 80
 
-addons_include:
-    - https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/rook-operator.yaml
-    - https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/rook-cluster.yaml
-    - /path/to/manifest
