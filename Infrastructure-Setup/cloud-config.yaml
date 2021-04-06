@@ -1,0 +1,49 @@
+#cloud-config
+
+# Hostname management
+hostname: master1
+fqdn: master1.example.com
+
+rancher:
+  console: centos
+  network:
+    interfaces:
+      eth1:
+        address: 192.168.193.150/24
+        gateway: 192.168.193.1
+        mtu: 1500
+        dhcp: false
+    #http_proxy: https://myproxy.example.com
+    #https_proxy: https://myproxy.example.com
+    #no_proxy: localhost,127.0.0.1
+
+manage_etc_hosts: "localhost"
+
+# Configure where output will go
+output:
+  all: ">> /var/log/cloud-init.log"
+  
+  
+#added
+users:
+  - name: "admin"
+    passwd: "$1$qgY9MXvp$5E1L2INgD7zTGfpp.AhYb1"
+    groups:
+      - "sudo"
+      - "docker"
+
+write_files:
+  - path: "/etc/resolv.conf"
+    permissions: "0644"
+    owner: "root"
+    content: |
+      nameserver 8.8.8.8
+  - path: "/etc/motd"
+    permissions: "0644"
+    owner: "root"
+    content: |
+      Good news, everyone!
+
+
+mounts:
+- ["/dev/sdb", "/mnt/s", "ext4", ""]
